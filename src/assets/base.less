@@ -1,0 +1,46 @@
+/* 主题色 */
+:root {
+  --primary-100: #00BFFF;
+  --primary-200: #00a2e0;
+  --primary-300: #00619a;
+  --accent-100: #FF8C00;
+  --accent-200: #8e3000;
+  --text-100: #FFFFFF;
+  --text-200: #e0e0e0;
+  --bg-100: #1A1A1A;
+  --bg-200: #292929;
+  --bg-300: #404040;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  font-weight: normal;
+}
+
+body {
+  min-height: 100lvh;
+  color: var(--text-100);
+  background: var(--bg-100);
+  transition: color 0.5s, background-color 0.5s;
+  line-height: 1.6;
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    'Fira Sans',
+    'Droid Sans',
+    'Helvetica Neue',
+    sans-serif;
+  font-size: 15px;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
