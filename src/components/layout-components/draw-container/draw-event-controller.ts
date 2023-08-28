@@ -1,5 +1,5 @@
 import { useDrawContainerStore } from '@/stores';
-import { Observable, filter, fromEvent, merge, switchMap, takeUntil } from 'rxjs';
+import { Observable, filter, fromEvent, merge, switchMap, takeUntil, tap } from 'rxjs';
 /**
  * @description 画布事件控制抽象类
  * @author Mapotato
@@ -18,6 +18,7 @@ export class DrawContainerEventController {
   globalKeydown$!: Observable<KeyboardEvent>;
   globalKeyup$!: Observable<KeyboardEvent>;
   globalMouseup$!: Observable<MouseEvent>;
+  globalMousemove$!: Observable<MouseEvent>;
 
   move$!: Observable<{
     dx: number;
@@ -44,6 +45,7 @@ export class DrawContainerEventController {
     this.globalKeydown$ = fromEvent<KeyboardEvent>(document, 'keydown');
     this.globalKeyup$ = fromEvent<KeyboardEvent>(document, 'keyup');
     this.globalMouseup$ = fromEvent<MouseEvent>(document, 'mouseup');
+    this.globalMousemove$ = fromEvent<MouseEvent>(document, 'mousemove');
     this.ctrlDown$ = this.globalKeydown$.pipe(filter((e) => e.ctrlKey));
     this.spaceDown$ = this.globalKeydown$.pipe(filter((e) => e.code === 'Space'));
     this.mousedown$ = fromEvent<MouseEvent>(drawContainer, 'mousedown');
@@ -60,7 +62,10 @@ export class DrawContainerEventController {
           this.mousedown$.pipe(takeUntil(merge(this.globalKeyup$, this.globalMouseup$)))
         ),
         switchMap(() =>
-          this.mousemove$.pipe(takeUntil(merge(this.globalKeyup$, this.globalMouseup$)))
+          this.globalMousemove$.pipe(
+            tap((e) => e.preventDefault()),
+            takeUntil(merge(this.globalKeyup$, this.globalMouseup$))
+          )
         )
       )
       .subscribe(({ movementX, movementY }) => {
