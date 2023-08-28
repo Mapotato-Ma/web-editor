@@ -7,11 +7,11 @@
 <style lang="less" scoped>
 .property-panel {
   position: absolute;
-  top: 0;
+  top: 3vh;
   right: 0;
   z-index: 2;
   width: 10vw;
-  height: 100%;
+  height: 97vh;
   background: #e59225;
 }
 </style>

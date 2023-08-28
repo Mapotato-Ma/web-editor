@@ -58,12 +58,27 @@ export class DrawContainerEventController {
   drawMove() {
     this.spaceDown$
       .pipe(
+        tap(
+          () =>
+            this.drawContainerStore.cursor === 'default' &&
+            (this.drawContainerStore.cursor = 'grab')
+        ),
         switchMap(() =>
-          this.mousedown$.pipe(takeUntil(merge(this.globalKeyup$, this.globalMouseup$)))
+          this.mousedown$.pipe(
+            tap(() => (this.drawContainerStore.cursor = 'grabbing')),
+            takeUntil(
+              merge(this.globalKeyup$, this.globalMouseup$).pipe(
+                tap(() => (this.drawContainerStore.cursor = 'default'))
+              )
+            )
+          )
         ),
         switchMap(() =>
           this.globalMousemove$.pipe(
-            tap((e) => e.preventDefault()),
+            tap((e) => {
+              e.preventDefault();
+              this.drawContainerStore.cursor = 'grabbing';
+            }),
             takeUntil(merge(this.globalKeyup$, this.globalMouseup$))
           )
         )

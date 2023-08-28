@@ -5,7 +5,8 @@
     :style="{
       top: drawContainerStore.topWithPx,
       left: drawContainerStore.leftWithPx,
-      transform: drawContainerStore.transform
+      transform: drawContainerStore.transform,
+      cursor: drawContainerStore.cursor
     }"
   ></div>
 </template>
