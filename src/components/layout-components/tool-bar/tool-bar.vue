@@ -1,7 +1,13 @@
 <template>
   <div class="tool-bar">
     <div class="tl-zoom-zone">
-      <div class="tl-zoom" v-for="zoom in drawContainerStore.zoomOptions" :key="zoom">
+      <div
+        class="tl-zoom"
+        :class="{ 'tl-zoom-selected': drawContainerStore.scaleRelatedZoom === zoom }"
+        v-for="zoom in drawContainerStore.zoomOptions"
+        :key="zoom"
+        @click="selectZoom(zoom)"
+      >
         {{ zoom }}
       </div>
     </div>
@@ -11,6 +17,9 @@
 <script lang="ts" setup>
 import { useDrawContainerStore } from '@/stores';
 const drawContainerStore = useDrawContainerStore();
+const selectZoom = (zoom: number) => {
+  drawContainerStore.scale = zoom / 100;
+};
 </script>
 
 <style lang="less" scoped>
@@ -29,25 +38,19 @@ const drawContainerStore = useDrawContainerStore();
     display: flex;
     width: max-content;
     align-items: center;
-    gap: 5px;
-    padding: 5px;
-    box-shadow: inset 0 0 4px -1px #bdabfc;
-    clip-path: ellipse(30px 20px);
-    transition: clip-path 233ms;
-    &:hover {
-      clip-path: ellipse(200px 30px);
-    }
+    gap: 1em;
     .tl-zoom {
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      background-color: var(--primary-100);
-      width: 40px;
-      padding: 0 5px;
-      border-radius: 9999999em;
+      width: 2em;
+      background-color: var(--primary-200);
       &:hover {
-        background-color: var(--primary-200);
+        opacity: 0.7;
+      }
+      &-selected {
+        background-color: var(--primary-300);
       }
     }
   }

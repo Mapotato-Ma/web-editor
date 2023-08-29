@@ -8,6 +8,7 @@ export const useDrawContainerStore = defineStore('drawContainerStore', () => {
   const top = ref(0);
   const left = ref(0);
   const scale = ref(0.7);
+  const scaleRelatedZoom = computed(() => scale.value * 100);
   const cursor = ref<'default' | 'grab' | 'grabbing'>('default');
   const zoomOptions = [50, 70, 100, 125, 150, 175, 200];
   const topWithPx = computed(() => `${top.value}px`);
@@ -18,6 +19,7 @@ export const useDrawContainerStore = defineStore('drawContainerStore', () => {
     top,
     left,
     scale,
+    scaleRelatedZoom,
     cursor,
     zoomOptions,
     transform,
