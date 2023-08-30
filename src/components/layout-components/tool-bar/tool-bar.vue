@@ -1,16 +1,19 @@
 <template>
   <div class="tool-bar">
-    <div class="tl-zoom-zone">
-      <div
-        class="tl-zoom"
-        :class="{ 'tl-zoom-selected': drawContainerStore.scaleRelatedZoom === zoom }"
-        v-for="zoom in drawContainerStore.zoomOptions"
-        :key="zoom"
-        @click="selectZoom(zoom)"
-      >
-        {{ zoom }}
-      </div>
-    </div>
+    <v-btn color="primary">
+      {{ drawContainerStore.scaleRelatedZoom }}%
+      <v-menu activator="parent" color="primary">
+        <v-list dark>
+          <v-list-item
+            v-for="zoom in drawContainerStore.zoomOptions"
+            :key="zoom"
+            @click="selectZoom(zoom)"
+          >
+            <v-list-item-title>{{ zoom }}%</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
+    </v-btn>
   </div>
 </template>
 
@@ -29,7 +32,7 @@ const selectZoom = (zoom: number) => {
   left: 0;
   z-index: 2;
   width: 100%;
-  height: 3vh;
+  height: 5vh;
   background: #292a2d;
   display: flex;
   align-items: center;

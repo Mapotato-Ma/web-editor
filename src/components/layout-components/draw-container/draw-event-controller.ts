@@ -105,9 +105,9 @@ export class DrawContainerEventController {
       )
       .subscribe(({ deltaY }) => {
         if (deltaY < 0) {
-          this.drawContainerStore.scale = (this.drawContainerStore.scale * 10 + 1) / 10;
+          this.drawContainerStore.scale = (this.drawContainerStore.scale * 1000 + 100) / 1000;
         } else {
-          this.drawContainerStore.scale = (this.drawContainerStore.scale * 10 - 1) / 10;
+          this.drawContainerStore.scale = (this.drawContainerStore.scale * 1000 - 100) / 1000;
         }
       });
   }
