@@ -1,5 +1,5 @@
 <template>
-  <div class="property-panel"></div>
+  <div class="property-panel bg-grey-darken-3"></div>
 </template>
 
 <script lang="ts" setup></script>
@@ -12,6 +12,6 @@
   z-index: 2;
   width: 10vw;
   height: 95vh;
-  background: #e59225;
+  box-shadow: 0 10px 10px 3px rgba(80, 78, 187, 0.408);
 }
 </style>

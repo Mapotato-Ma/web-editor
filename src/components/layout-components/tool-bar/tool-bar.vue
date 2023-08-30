@@ -1,27 +1,37 @@
 <template>
-  <div class="tool-bar">
-    <v-btn color="primary">
-      {{ drawContainerStore.scaleRelatedZoom }}%
-      <v-menu activator="parent" color="primary">
-        <v-list dark>
-          <v-list-item
-            v-for="zoom in drawContainerStore.zoomOptions"
-            :key="zoom"
-            @click="selectZoom(zoom)"
-          >
-            <v-list-item-title>{{ zoom }}%</v-list-item-title>
-          </v-list-item>
-        </v-list>
-      </v-menu>
-    </v-btn>
+  <div class="tool-bar bg-grey-darken-3">
+    <v-btn-group>
+      <v-btn
+        v-for="zoom in drawContainerStore.zoomOptions"
+        :key="zoom"
+        :value="zoom"
+        @click="selectZoom(zoom)"
+        :class="{ 'bg-deep-purple-accent-3': zoom === drawContainerStore.scaleRelatedZoom }"
+      >
+        {{ zoom }}%
+      </v-btn>
+    </v-btn-group>
+    <v-btn-group>
+      <v-btn
+        size="large"
+        @click="
+          clearFocusStatus();
+          drawContainerStore.centeredDrawContainer();
+        "
+      >
+        居中画布
+      </v-btn>
+    </v-btn-group>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { useDrawContainerStore } from '@/stores';
+import { clearFocusStatus } from '@/utils';
 const drawContainerStore = useDrawContainerStore();
 const selectZoom = (zoom: number) => {
-  drawContainerStore.scale = zoom / 100;
+  clearFocusStatus();
+  drawContainerStore.setScale(zoom / 100);
 };
 </script>
 
@@ -33,29 +43,11 @@ const selectZoom = (zoom: number) => {
   z-index: 2;
   width: 100%;
   height: 5vh;
-  background: #292a2d;
   display: flex;
   align-items: center;
   justify-content: center;
-  .tl-zoom-zone {
-    display: flex;
-    width: max-content;
-    align-items: center;
-    gap: 1em;
-    .tl-zoom {
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 2em;
-      background-color: var(--primary-200);
-      &:hover {
-        opacity: 0.7;
-      }
-      &-selected {
-        background-color: var(--primary-300);
-      }
-    }
-  }
+  gap: 5px;
+  border-bottom: 1px solid rgb(80, 78, 187);
+  box-shadow: 0 0 10px 3px rgba(80, 78, 187, 0.408);
 }
 </style>

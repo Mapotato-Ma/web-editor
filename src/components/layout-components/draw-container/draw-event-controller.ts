@@ -20,15 +20,6 @@ export class DrawContainerEventController {
   globalMouseup$!: Observable<MouseEvent>;
   globalMousemove$!: Observable<MouseEvent>;
 
-  move$!: Observable<{
-    dx: number;
-    dy: number;
-    lastX: number;
-    lastY: number;
-    startX: number;
-    startY: number;
-  }>;
-
   drawContainerStore = useDrawContainerStore();
 
   constructor(drawContainer: HTMLElement) {
@@ -64,27 +55,23 @@ export class DrawContainerEventController {
             (this.drawContainerStore.cursor = 'grab')
         ),
         switchMap(() =>
-          this.mousedown$.pipe(
-            tap(() => (this.drawContainerStore.cursor = 'grabbing')),
-            takeUntil(
-              merge(this.globalKeyup$, this.globalMouseup$).pipe(
-                tap(() => (this.drawContainerStore.cursor = 'default'))
-              )
-            )
-          )
-        ),
-        switchMap(() =>
-          this.globalMousemove$.pipe(
+          merge(this.mousedown$, this.mousemove$, this.mouseup$).pipe(
             tap((e) => {
               e.preventDefault();
               this.drawContainerStore.cursor = 'grabbing';
             }),
-            takeUntil(merge(this.globalKeyup$, this.globalMouseup$))
+            filter((e) => e.buttons > 0),
+            takeUntil(
+              this.globalKeyup$.pipe(tap(() => (this.drawContainerStore.cursor = 'default')))
+            )
           )
         )
       )
       .subscribe(({ movementX, movementY }) => {
-        (this.drawContainerStore.left += movementX), (this.drawContainerStore.top += movementY);
+        this.drawContainerStore.setPosition([
+          this.drawContainerStore.left + movementX,
+          this.drawContainerStore.top + movementY
+        ]);
       });
   }
 
@@ -96,8 +83,8 @@ export class DrawContainerEventController {
             takeUntil(this.globalKeyup$),
             filter(({ deltaY }) => {
               return (
-                (deltaY > 0 && (this.drawContainerStore.scale * 10 + 1) / 10 > 0.3) ||
-                (deltaY < 0 && (this.drawContainerStore.scale * 10 - 1) / 10 < 3.9)
+                (deltaY > 0 && this.drawContainerStore.scale > 0.2) ||
+                (deltaY < 0 && this.drawContainerStore.scale < 4)
               );
             })
           )
@@ -105,9 +92,13 @@ export class DrawContainerEventController {
       )
       .subscribe(({ deltaY }) => {
         if (deltaY < 0) {
-          this.drawContainerStore.scale = (this.drawContainerStore.scale * 1000 + 100) / 1000;
+          this.drawContainerStore.setScale(
+            Number(((this.drawContainerStore.scale * 100 + 10) / 100).toFixed(1))
+          );
         } else {
-          this.drawContainerStore.scale = (this.drawContainerStore.scale * 1000 - 100) / 1000;
+          this.drawContainerStore.setScale(
+            Number(((this.drawContainerStore.scale * 100 - 10) / 100).toFixed(1))
+          );
         }
       });
   }

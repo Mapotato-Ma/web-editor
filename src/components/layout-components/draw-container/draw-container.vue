@@ -1,8 +1,11 @@
 <template>
   <div
-    class="draw-container"
+    class="draw-container bg-grey-darken-4"
     ref="drawContainer"
+    id="drawContainer"
     :style="{
+      width: drawContainerStore.widthWithPx,
+      height: drawContainerStore.heightWithPx,
       top: drawContainerStore.topWithPx,
       left: drawContainerStore.leftWithPx,
       transform: drawContainerStore.transform,
@@ -22,15 +25,14 @@ onMounted(() => {
   drawContainerEventControllerInstance.value = new DrawContainerEventController(
     drawContainer.value!
   );
+  drawContainerStore.centeredDrawContainer();
 });
 </script>
 
 <style lang="less" scoped>
 .draw-container {
   position: relative;
-  width: 100vw;
-  height: 100vh;
-  background: #543f3f;
+  transform-origin: center center;
   transition: transform 233ms;
 }
 </style>
