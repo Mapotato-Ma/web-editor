@@ -5,38 +5,72 @@ import { defineStore } from 'pinia';
  * 画布数据Store
  */
 export const useDrawContainerStore = defineStore('drawContainerStore', () => {
-  const width = ref(1920);
-  const height = ref(1080);
-  const top = ref(0);
-  const left = ref(0);
+  // 宽高
+  const [width, height] = [ref(1920), ref(1080)];
+  // 宽高包装样式
+  const [widthWithPx, heightWithPx] = [
+    computed(() => `${width.value}px`),
+    computed(() => `${height.value}px`)
+  ];
+  // 偏移量
+  const [top, left] = [ref(0), ref(0)];
+  // 偏移量包装样式
+  const [topWithPx, leftWithPx] = [
+    computed(() => `${top.value}px`),
+    computed(() => `${left.value}px`)
+  ];
+  // 缩放
   const scale = ref(1);
-  const scaleRelatedZoom = computed(() => Math.round(scale.value * 100));
-  const cursor = ref<'default' | 'grab' | 'grabbing'>('default');
-  const zoomOptions = [50, 70, 100, 125, 150, 175, 200];
-  const topWithPx = computed(() => `${top.value}px`);
-  const leftWithPx = computed(() => `${left.value}px`);
-  const widthWithPx = computed(() => `${width.value}px`);
-  const heightWithPx = computed(() => `${height.value}px`);
+  // 缩放包装样式
   const transform = computed(() => `scale(${scale.value})`);
-  const centerStatus = ref(true);
+  // 缩放百分比
+  const scaleRelatedZoom = computed(() => Math.round(scale.value * 100));
+  // 缩放百分比可选项
+  const zoomOptions = [50, 70, 100, 125, 150, 175, 200];
+  // 鼠标手势
+  const cursor = ref<'default' | 'grab' | 'grabbing'>('default');
 
+  /**
+   * @description 设置缩放
+   * @author Mapotato
+   * @date 31/08/2023
+   * @param {number} value
+   */
   const setScale = (value: number) => {
     scale.value = value;
   };
 
+  /**
+   * @description 设置位置
+   * @author Mapotato
+   * @date 31/08/2023
+   * @param {number[]} [x, y]
+   */
   const setPosition = ([x, y]: number[]) => ((left.value = x), (top.value = y));
 
+  /**
+   * @description 居中画布
+   * @author Mapotato
+   * @date 31/08/2023
+   */
   const centeredDrawContainer = () => {
     const { clientWidth, clientHeight } = document.body;
     const { clientWidth: drawContainerWidth, clientHeight: drawContainerHeight } =
       document.getElementById('drawContainer')!;
-    top.value = (clientHeight - drawContainerHeight) / 2;
-    left.value = (clientWidth - drawContainerWidth) / 2;
-    scale.value = 1;
+    // 设置画布位置
+    (top.value = (clientHeight - drawContainerHeight) / 2),
+      (left.value = (clientWidth - drawContainerWidth) / 2);
+    // 设置画布缩放
+    if (clientWidth <= 1920) {
+      // 1920*1080
+      scale.value = 0.7;
+    } else {
+      // 2k/4k
+      scale.value = 1;
+    }
   };
 
   return {
-    centerStatus,
     width,
     height,
     widthWithPx,

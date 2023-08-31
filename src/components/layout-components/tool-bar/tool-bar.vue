@@ -28,6 +28,7 @@
 <script lang="ts" setup>
 import { useDrawContainerStore } from '@/stores';
 import { clearFocusStatus } from '@/utils';
+// 画布store
 const drawContainerStore = useDrawContainerStore();
 const selectZoom = (zoom: number) => {
   clearFocusStatus();

@@ -18,13 +18,18 @@
 import { onMounted, ref } from 'vue';
 import { DrawContainerEventController } from './draw-event-controller';
 import { useDrawContainerStore } from '@/stores';
+// 画布容器
 const drawContainer = ref<HTMLElement>();
+// 画布store
 const drawContainerStore = useDrawContainerStore();
+// 画布事件管理器实例
 const drawContainerEventControllerInstance = ref<DrawContainerEventController>();
 onMounted(() => {
+  // 创建画布事件管理器实例
   drawContainerEventControllerInstance.value = new DrawContainerEventController(
     drawContainer.value!
   );
+  // 居中画布
   drawContainerStore.centeredDrawContainer();
 });
 </script>

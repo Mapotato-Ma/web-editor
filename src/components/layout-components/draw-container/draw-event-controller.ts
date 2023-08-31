@@ -7,24 +7,39 @@ import { Observable, filter, fromEvent, merge, switchMap, takeUntil, tap } from 
  * @class DrawContainerEventController
  */
 export class DrawContainerEventController {
+  // ctrl键按下触发
   ctrlDown$!: Observable<KeyboardEvent>;
+  // 空格键按下触发
   spaceDown$!: Observable<KeyboardEvent>;
+  // 鼠标滚轮触发
   wheel$!: Observable<WheelEvent>;
+  // 鼠标键按下触发
   mousedown$!: Observable<MouseEvent>;
+  // 鼠标键抬起触发
   mouseup$!: Observable<MouseEvent>;
+  // 鼠标移动触发
   mousemove$!: Observable<MouseEvent>;
+  // 鼠标移出触发
   mouseleave$!: Observable<MouseEvent>;
 
+  // 全局按键按下事件
   globalKeydown$!: Observable<KeyboardEvent>;
+  // 全局按键抬起事件
   globalKeyup$!: Observable<KeyboardEvent>;
+  // 全局鼠标抬起事件
   globalMouseup$!: Observable<MouseEvent>;
+  // 全局鼠标移动事件
   globalMousemove$!: Observable<MouseEvent>;
 
+  // 画布store
   drawContainerStore = useDrawContainerStore();
 
   constructor(drawContainer: HTMLElement) {
+    // 初始化事件流
     this.initialFlow(drawContainer);
+    // 注册画布移动事件
     this.drawMove();
+    // 注册画布缩放事件
     this.drawScale();
   }
 
@@ -46,6 +61,12 @@ export class DrawContainerEventController {
     this.mouseleave$ = fromEvent<MouseEvent>(drawContainer, 'mouseleave');
   }
 
+  /**
+   * @description 注册画布移动事件
+   * @author Mapotato
+   * @date 31/08/2023
+   * @memberof DrawContainerEventController
+   */
   drawMove() {
     this.spaceDown$
       .pipe(
@@ -75,6 +96,12 @@ export class DrawContainerEventController {
       });
   }
 
+  /**
+   * @description 注册画布缩放事件
+   * @author Mapotato
+   * @date 31/08/2023
+   * @memberof DrawContainerEventController
+   */
   drawScale() {
     this.spaceDown$
       .pipe(
