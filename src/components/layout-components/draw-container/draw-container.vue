@@ -11,13 +11,26 @@
       transform: drawContainerStore.transform,
       cursor: drawContainerStore.cursor
     }"
-  ></div>
+  >
+    <div
+      class="component"
+      :style="{
+        width: `${width}px`,
+        height: `${height}px`,
+        top: `${top}px`,
+        left: `${left}px`
+      }"
+    >
+      <drag-box></drag-box>
+    </div>
+  </div>
 </template>
 
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue';
 import { DrawContainerEventController } from './draw-event-controller';
 import { useDrawContainerStore } from '@/stores';
+import { DragBox } from '@/components/com-components';
 // 画布容器
 const drawContainer = ref<HTMLElement>();
 // 画布store
@@ -32,6 +45,8 @@ onMounted(() => {
   // 居中画布
   drawContainerStore.centeredDrawContainer();
 });
+
+const [width, height, top, left] = [ref(200), ref(200), ref(200), ref(500)];
 </script>
 
 <style lang="less" scoped>
@@ -39,5 +54,9 @@ onMounted(() => {
   position: relative;
   transform-origin: center center;
   transition: transform 233ms;
+  .component {
+    position: absolute;
+    border: 1px solid #fff;
+  }
 }
 </style>
