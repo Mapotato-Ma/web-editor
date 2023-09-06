@@ -1,4 +1,4 @@
-import { useDrawContainerStore } from '@/stores';
+import { useDrawContainerStore, useProjectManageStore } from '@/stores';
 import { Observable, filter, fromEvent, merge, switchMap, takeUntil, tap } from 'rxjs';
 /**
  * @description 画布事件控制抽象类
@@ -21,6 +21,8 @@ export class DrawContainerEventController {
   mousemove$!: Observable<MouseEvent>;
   // 鼠标移出触发
   mouseleave$!: Observable<MouseEvent>;
+  // 点击事件
+  click$!: Observable<MouseEvent>;
 
   // 全局按键按下事件
   globalKeydown$!: Observable<KeyboardEvent>;
@@ -31,8 +33,10 @@ export class DrawContainerEventController {
   // 全局鼠标移动事件
   globalMousemove$!: Observable<MouseEvent>;
 
-  // 画布store
+  // 画布数据库
   drawContainerStore = useDrawContainerStore();
+
+  projectManageStore = useProjectManageStore();
 
   constructor(drawContainer: HTMLElement) {
     // 初始化事件流
@@ -41,6 +45,8 @@ export class DrawContainerEventController {
     this.drawMove();
     // 注册画布缩放事件
     this.drawScale();
+    // 注册画布点击事件
+    this.drawClick();
   }
 
   /**
@@ -59,6 +65,7 @@ export class DrawContainerEventController {
     this.wheel$ = fromEvent<WheelEvent>(drawContainer, 'wheel');
     this.mousemove$ = fromEvent<MouseEvent>(drawContainer, 'mousemove');
     this.mouseleave$ = fromEvent<MouseEvent>(drawContainer, 'mouseleave');
+    this.click$ = fromEvent<MouseEvent>(drawContainer, 'click');
   }
 
   /**
@@ -128,5 +135,22 @@ export class DrawContainerEventController {
           );
         }
       });
+  }
+
+  /**
+   * @description 注册画布点击事件
+   * @author Mapotato
+   * @date 06/09/2023
+   * @memberof DrawContainerEventController
+   */
+  drawClick() {
+    this.click$.subscribe((e) => {
+      this.projectManageStore.selectedPage.elements.some((element) => {
+        if (element.elementId === (e.target as HTMLElement).id) {
+          this.projectManageStore.activeElement(element);
+          return true;
+        }
+      });
+    });
   }
 }

@@ -1,23 +1,24 @@
 import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
+import { numberToPx } from '@/utils';
 
 /**
- * 画布数据Store
+ * 画布数据数据库
  */
 export const useDrawContainerStore = defineStore('drawContainerStore', () => {
   // 宽高
   const [width, height] = [ref(1920), ref(1080)];
   // 宽高包装样式
   const [widthWithPx, heightWithPx] = [
-    computed(() => `${width.value}px`),
-    computed(() => `${height.value}px`)
+    computed(() => numberToPx(width.value)),
+    computed(() => numberToPx(height.value))
   ];
   // 偏移量
   const [top, left] = [ref(0), ref(0)];
   // 偏移量包装样式
   const [topWithPx, leftWithPx] = [
-    computed(() => `${top.value}px`),
-    computed(() => `${left.value}px`)
+    computed(() => numberToPx(top.value)),
+    computed(() => numberToPx(left.value))
   ];
   // 缩放
   const scale = ref(1);

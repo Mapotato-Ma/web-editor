@@ -12,16 +12,25 @@
       cursor: drawContainerStore.cursor
     }"
   >
-    <div
-      class="component"
-      :style="{
-        width: `${width}px`,
-        height: `${height}px`,
-        top: `${top}px`,
-        left: `${left}px`
-      }"
-    >
-      <drag-box></drag-box>
+    <div class="dc-page">
+      <div
+        class="dc-element"
+        v-for="element in projectManageStore.selectedPage.elements"
+        :style="{
+          width: numberToPx(element.commonStyle.width),
+          height: numberToPx(element.commonStyle.height),
+          top: numberToPx(element.commonStyle.top),
+          left: numberToPx(element.commonStyle.left)
+        }"
+        :id="element.elementId"
+        :key="element.elementId"
+      >
+        <transition>
+          <drag-box
+            v-if="element.elementId === projectManageStore.selectedElement.elementId"
+          ></drag-box>
+        </transition>
+      </div>
     </div>
   </div>
 </template>
@@ -31,10 +40,16 @@ import { onMounted, ref } from 'vue';
 import { DrawContainerEventController } from './draw-event-controller';
 import { useDrawContainerStore } from '@/stores';
 import { DragBox } from '@/components/com-components';
+import { numberToPx } from '@/utils';
+import { useProjectManageStore } from '@/stores/project-manage-store';
+
 // 画布容器
 const drawContainer = ref<HTMLElement>();
-// 画布store
+// 画布数据库
 const drawContainerStore = useDrawContainerStore();
+
+const projectManageStore = useProjectManageStore();
+
 // 画布事件管理器实例
 const drawContainerEventControllerInstance = ref<DrawContainerEventController>();
 onMounted(() => {
@@ -45,8 +60,6 @@ onMounted(() => {
   // 居中画布
   drawContainerStore.centeredDrawContainer();
 });
-
-const [width, height, top, left] = [ref(200), ref(200), ref(200), ref(500)];
 </script>
 
 <style lang="less" scoped>
@@ -54,7 +67,7 @@ const [width, height, top, left] = [ref(200), ref(200), ref(200), ref(500)];
   position: relative;
   transform-origin: center center;
   transition: transform 233ms;
-  .component {
+  .dc-element {
     position: absolute;
     border: 1px solid #fff;
   }
