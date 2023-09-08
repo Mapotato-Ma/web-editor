@@ -17,12 +17,9 @@ export const useOperationStackStore = defineStore('operationStackStore', () => {
   const pushStack = (stackItem: stackItem) => {
     if (historyStack.length === 100) {
       historyStack.shift();
-      historyStack.push(stackItem);
-      historyStackPointer++;
-      return;
     }
     historyStack.push(stackItem);
-    historyStackPointer++;
+    historyStackPointer = historyStack.length - 1;
   };
 
   // 撤销

@@ -25,7 +25,7 @@
         :id="element.elementId"
         :key="element.elementId"
       >
-        <transition>
+        <transition name="fade">
           <drag-box
             v-if="element.elementId === projectManageStore.selectedElement.elementId"
           ></drag-box>
@@ -70,6 +70,15 @@ onMounted(() => {
   .dc-element {
     position: absolute;
     border: 1px solid #fff;
+    .fade-enter-active,
+    .fade-leave-active {
+      transition: opacity 50ms ease;
+    }
+
+    .fade-enter-from,
+    .fade-leave-to {
+      opacity: 0;
+    }
   }
 }
 </style>
