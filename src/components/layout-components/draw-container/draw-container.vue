@@ -17,17 +17,21 @@
         class="dc-element"
         v-for="element in projectManageStore.selectedPage.elements"
         :style="{
-          width: numberToPx(element.commonStyle.width),
-          height: numberToPx(element.commonStyle.height),
-          top: numberToPx(element.commonStyle.top),
-          left: numberToPx(element.commonStyle.left)
+          width: numberToPx(element.commonStyle.size.width),
+          height: numberToPx(element.commonStyle.size.height),
+          top: numberToPx(element.commonStyle.position.top),
+          left: numberToPx(element.commonStyle.position.left)
         }"
         :id="element.elementId"
         :key="element.elementId"
       >
         <transition name="fade">
           <drag-box
-            v-if="element.elementId === projectManageStore.selectedElement.elementId"
+            v-if="
+              projectManageStore.selectMode === '单选' &&
+              projectManageStore.selectedElementsIds.includes(element.elementId)
+            "
+            :id="element.elementId"
           ></drag-box>
         </transition>
       </div>
@@ -37,7 +41,6 @@
 
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue';
-import { DrawContainerEventController } from './draw-event-controller';
 import { useDrawContainerStore } from '@/stores';
 import { DragBox } from '@/components/com-components';
 import { numberToPx } from '@/utils';
@@ -47,16 +50,13 @@ import { useProjectManageStore } from '@/stores/project-manage-store';
 const drawContainer = ref<HTMLElement>();
 // 画布数据库
 const drawContainerStore = useDrawContainerStore();
-
+// 项目管理数据库
 const projectManageStore = useProjectManageStore();
 
 // 画布事件管理器实例
-const drawContainerEventControllerInstance = ref<DrawContainerEventController>();
 onMounted(() => {
   // 创建画布事件管理器实例
-  drawContainerEventControllerInstance.value = new DrawContainerEventController(
-    drawContainer.value!
-  );
+  projectManageStore.initDrawContainerEventController(drawContainer.value!);
   // 居中画布
   drawContainerStore.centeredDrawContainer();
 });

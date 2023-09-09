@@ -20,21 +20,32 @@ export const useOperationStackStore = defineStore('operationStackStore', () => {
     }
     historyStack.push(stackItem);
     historyStackPointer = historyStack.length - 1;
+    console.trace('🚀 ~ 入栈 ~ 23行', historyStack);
+  };
+  // 出栈
+  const popStack = () => {
+    historyStack.pop();
+    historyStackPointer--;
+    console.trace('🚀 ~ 出栈 ~ 23行', historyStack);
   };
 
   // 撤销
   const redo = () => {
-    const element = projectManageStore.selectedPage.elements.find(
-      (element) => element.elementId === historyStack[historyStackPointer].elementId
-    );
-    if (element) {
-      setAttribute(element);
+    console.log('🚀 ~  ~ 45行', historyStack, historyStackPointer);
+    if (historyStack.length > 1 && historyStackPointer > 0) {
       historyStackPointer--;
+      const element = projectManageStore.selectedPage.elements.find(
+        (element) => element.elementId === historyStack?.[historyStackPointer]?.elementId
+      );
+      if (element) {
+        setAttribute(element);
+      }
     }
   };
 
-  // 撤销
+  // 回退
   const undo = () => {
+    console.log('🚀 ~  ~ 45行', historyStack, historyStackPointer);
     if (historyStack.length - 1 > historyStackPointer) {
       historyStackPointer++;
       const element = projectManageStore.selectedPage.elements.find(
@@ -51,14 +62,19 @@ export const useOperationStackStore = defineStore('operationStackStore', () => {
    * @param {element} element
    */
   const setAttribute = (element: element) => {
-    historyStack[historyStackPointer].keyPath.reduce((pre: any, cur: string) => {
-      return pre?.[cur];
-    }, element)[historyStack[historyStackPointer].keyName] =
-      historyStack[historyStackPointer].currentValue;
-    if (element.elementId === projectManageStore.selectedElement.elementId) {
-      // 更新右侧面板
+    try {
+      historyStack[historyStackPointer].keyPath.reduce((pre: any, cur: string) => {
+        return pre?.[cur];
+      }, element)[historyStack[historyStackPointer].keyName] = JSON.parse(
+        historyStack[historyStackPointer].currentValue
+      );
+    } catch (error) {
+      console.log('🚀 ~ 撤销解析数据失败 ~ 68行');
     }
+    // if (element.elementId === projectManageStore.selectedElement.elementId) {
+    //   // 更新右侧面板
+    // }
   };
 
-  return { historyStack, pushStack, redo, undo };
+  return { historyStack, pushStack, popStack, redo, undo };
 });

@@ -19,10 +19,14 @@ export interface element {
   elementId: string;
   elementType: '矩形';
   commonStyle: {
-    top: number;
-    left: number;
-    width: number;
-    height: number;
+    position: {
+      top: number;
+      left: number;
+    };
+    size: {
+      width: number;
+      height: number;
+    };
   };
   privateStyle?: unknown;
 }

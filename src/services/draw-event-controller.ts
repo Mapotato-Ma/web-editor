@@ -41,11 +41,9 @@ export class DrawContainerEventController {
   constructor(drawContainer: HTMLElement) {
     // 初始化事件流
     this.initialFlow(drawContainer);
-    // 注册画布移动事件
+    // 画布赋能
     this.drawMove();
-    // 注册画布缩放事件
     this.drawScale();
-    // 注册画布点击事件
     this.drawClick();
   }
 
@@ -144,7 +142,7 @@ export class DrawContainerEventController {
    * @memberof DrawContainerEventController
    */
   drawClick() {
-    this.click$.subscribe((e) => {
+    this.mousedown$.subscribe((e) => {
       this.projectManageStore.selectedPage.elements.some((element) => {
         if (element.elementId === (e.target as HTMLElement).id) {
           this.projectManageStore.activeElement(element);
