@@ -1,21 +1,21 @@
 // 项目
-export interface project {
+export interface IProject {
   // 项目id
   projectId: string;
   // 页签集合
-  pages: pageInterface[];
+  pages: IPageInterface[];
 }
 
 // 页签
-export interface pageInterface {
+export interface IPageInterface {
   // 页签id
   pageId: string;
   // 元素集合
-  elements: element[];
+  elements: IElement[];
 }
 
 // 当前操作元素
-export interface element {
+export interface IElement {
   elementId: string;
   elementType: '矩形';
   commonStyle: {
@@ -31,10 +31,7 @@ export interface element {
   privateStyle?: unknown;
 }
 
-// 操作栈项目
-export interface stackItem {
-  keyPath: Array<string>;
-  keyName: string;
-  currentValue: any;
-  elementId: string;
+// 撤销回退栈数据切片
+export interface IDataSlice {
+  sliceValue: string; // 页面json化数据
 }

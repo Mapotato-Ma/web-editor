@@ -1,80 +1,85 @@
 import { defineStore } from 'pinia';
-import { element, stackItem } from './type';
+import { IDataSlice, IProject } from './type';
 import { useProjectManageStore } from '.';
+import { Subject } from 'rxjs';
+import { ref } from 'vue';
 
 /**
  * 操作栈数据库
  */
 export const useOperationStackStore = defineStore('operationStackStore', () => {
-  // 撤销回退栈
-  const historyStack: Array<stackItem> = [];
-  // 撤销游标
-  let historyStackPointer = 0;
+  // TODO 此处为了调试撤销回退特意做了响应式数据展示右侧面板，后期去掉以节省性能
+  const historyStackMap = ref<
+    Map<string, { historyStackPointer: number; historyStack: Array<IDataSlice> }>
+  >(new Map());
+
+  const redoUndo$: Subject<{
+    type: 'redo' | 'undo';
+  }> = new Subject();
+
   // 项目管理数据库
   const projectManageStore = useProjectManageStore();
 
   // 入栈
-  const pushStack = (stackItem: stackItem) => {
-    if (historyStack.length === 100) {
-      historyStack.shift();
+  const pushStack = (sliceValue: string) => {
+    const currentHistory = historyStackMap.value.get(projectManageStore.selectedPageId);
+    console.trace('🚀 ~ 入栈 ~ 23行', projectManageStore.selectedPage);
+    if (currentHistory) {
+      const { historyStack } = currentHistory;
+      if (historyStack.length === 100) {
+        historyStack.shift();
+      }
+      currentHistory.historyStack.push({ sliceValue });
+      currentHistory.historyStackPointer = historyStack.length - 1;
     }
-    historyStack.push(stackItem);
-    historyStackPointer = historyStack.length - 1;
-    console.trace('🚀 ~ 入栈 ~ 23行', historyStack);
-  };
-  // 出栈
-  const popStack = () => {
-    historyStack.pop();
-    historyStackPointer--;
-    console.trace('🚀 ~ 出栈 ~ 23行', historyStack);
   };
 
   // 撤销
   const redo = () => {
-    console.log('🚀 ~  ~ 45行', historyStack, historyStackPointer);
-    if (historyStack.length > 1 && historyStackPointer > 0) {
-      historyStackPointer--;
-      const element = projectManageStore.selectedPage.elements.find(
-        (element) => element.elementId === historyStack?.[historyStackPointer]?.elementId
-      );
-      if (element) {
-        setAttribute(element);
+    const currentHistory = historyStackMap.value.get(projectManageStore.selectedPageId);
+    if (currentHistory) {
+      const { historyStack, historyStackPointer } = currentHistory;
+      if (historyStack.length > 1 && historyStackPointer > 0) {
+        projectManageStore.selectedPage.elements = JSON.parse(
+          currentHistory.historyStack[--currentHistory.historyStackPointer].sliceValue
+        );
+        redoUndo$.next({ type: 'redo' });
       }
     }
   };
 
   // 回退
   const undo = () => {
-    console.log('🚀 ~  ~ 45行', historyStack, historyStackPointer);
-    if (historyStack.length - 1 > historyStackPointer) {
-      historyStackPointer++;
-      const element = projectManageStore.selectedPage.elements.find(
-        (element) => element.elementId === historyStack[historyStackPointer].elementId
-      );
-      element && setAttribute(element);
+    const currentHistory = historyStackMap.value.get(projectManageStore.selectedPageId);
+    if (currentHistory) {
+      const { historyStack, historyStackPointer } = currentHistory;
+      if (historyStack.length - 1 > historyStackPointer) {
+        projectManageStore.selectedPage.elements = JSON.parse(
+          currentHistory.historyStack[++currentHistory.historyStackPointer].sliceValue
+        );
+        redoUndo$.next({ type: 'undo' });
+      }
     }
   };
 
   /**
-   * @description 设置属性
+   * @description 初始化撤销回退栈
    * @author Mapotato
-   * @date 06/09/2023
-   * @param {element} element
+   * @date 09/09/2023
+   * @param {IProject} project 项目数据
    */
-  const setAttribute = (element: element) => {
-    try {
-      historyStack[historyStackPointer].keyPath.reduce((pre: any, cur: string) => {
-        return pre?.[cur];
-      }, element)[historyStack[historyStackPointer].keyName] = JSON.parse(
-        historyStack[historyStackPointer].currentValue
-      );
-    } catch (error) {
-      console.log('🚀 ~ 撤销解析数据失败 ~ 68行');
-    }
-    // if (element.elementId === projectManageStore.selectedElement.elementId) {
-    //   // 更新右侧面板
-    // }
+  const initHistoryStackMap = (project: IProject) => {
+    project.pages.forEach((page) => {
+      historyStackMap.value.set(page.pageId, {
+        historyStackPointer: 0,
+        historyStack: [
+          {
+            sliceValue: JSON.stringify(page.elements)
+          }
+        ]
+      });
+    });
   };
 
-  return { historyStack, pushStack, popStack, redo, undo };
+  return { historyStackMap, initHistoryStackMap, pushStack, redo, undo };
 });

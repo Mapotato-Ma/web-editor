@@ -1,8 +1,27 @@
 <template>
-  <div class="property-panel bg-grey-darken-3"></div>
+  <div class="property-panel bg-grey-darken-3">
+    <div>
+      historyStackPointer:
+      {{
+        useOperationStackStore().historyStackMap.get(useProjectManageStore().selectedPageId)
+          ?.historyStackPointer
+      }}
+    </div>
+    <div
+      v-for="item in useOperationStackStore().historyStackMap.get(
+        useProjectManageStore().selectedPageId
+      )?.historyStack"
+      :key="item.sliceValue"
+    >
+      historyStack:
+      {{ JSON.parse(item.sliceValue) }}
+    </div>
+  </div>
 </template>
 
-<script lang="ts" setup></script>
+<script lang="ts" setup>
+import { useOperationStackStore, useProjectManageStore } from '@/stores';
+</script>
 
 <style lang="less" scoped>
 .property-panel {
