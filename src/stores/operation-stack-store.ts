@@ -3,6 +3,7 @@ import { IDataSlice, IProject } from './type';
 import { useProjectManageStore } from '.';
 import { Subject } from 'rxjs';
 import { ref } from 'vue';
+import { deepClone } from '@/utils';
 
 /**
  * 操作栈数据库
@@ -21,14 +22,16 @@ export const useOperationStackStore = defineStore('operationStackStore', () => {
   const projectManageStore = useProjectManageStore();
 
   // 入栈
-  const pushStack = (sliceValue: string) => {
+  const pushStack = () => {
     const currentHistory = historyStackMap.value.get(projectManageStore.selectedPageId);
-    console.trace('🚀 ~ 入栈 ~ 23行', projectManageStore.selectedPage);
     if (currentHistory) {
       const { historyStack } = currentHistory;
       if (historyStack.length === 100) {
         historyStack.shift();
       }
+      const sliceValue = {
+        elements: deepClone(projectManageStore.selectedPage.elements)
+      };
       currentHistory.historyStack.push({ sliceValue });
       currentHistory.historyStackPointer = historyStack.length - 1;
     }
@@ -40,8 +43,8 @@ export const useOperationStackStore = defineStore('operationStackStore', () => {
     if (currentHistory) {
       const { historyStack, historyStackPointer } = currentHistory;
       if (historyStack.length > 1 && historyStackPointer > 0) {
-        projectManageStore.selectedPage.elements = JSON.parse(
-          currentHistory.historyStack[--currentHistory.historyStackPointer].sliceValue
+        projectManageStore.selectedPage.elements = deepClone(
+          currentHistory.historyStack[--currentHistory.historyStackPointer].sliceValue.elements
         );
         redoUndo$.next({ type: 'redo' });
       }
@@ -54,8 +57,8 @@ export const useOperationStackStore = defineStore('operationStackStore', () => {
     if (currentHistory) {
       const { historyStack, historyStackPointer } = currentHistory;
       if (historyStack.length - 1 > historyStackPointer) {
-        projectManageStore.selectedPage.elements = JSON.parse(
-          currentHistory.historyStack[++currentHistory.historyStackPointer].sliceValue
+        projectManageStore.selectedPage.elements = deepClone(
+          currentHistory.historyStack[++currentHistory.historyStackPointer].sliceValue.elements
         );
         redoUndo$.next({ type: 'undo' });
       }
@@ -74,7 +77,7 @@ export const useOperationStackStore = defineStore('operationStackStore', () => {
         historyStackPointer: 0,
         historyStack: [
           {
-            sliceValue: JSON.stringify(page.elements)
+            sliceValue: { elements: deepClone(page.elements) }
           }
         ]
       });

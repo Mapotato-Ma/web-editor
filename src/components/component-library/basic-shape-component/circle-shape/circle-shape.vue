@@ -3,7 +3,8 @@
     :style="{
       width: numberToPx(props.width),
       height: numberToPx(props.height),
-      background: props.background
+      background: props.background,
+      borderRadius: '50%'
     }"
   ></div>
 </template>

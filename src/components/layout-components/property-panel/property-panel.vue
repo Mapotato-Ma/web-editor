@@ -8,13 +8,13 @@
       }}
     </div>
     <div
-      v-for="item in useOperationStackStore().historyStackMap.get(
+      v-for="(item, index) in useOperationStackStore().historyStackMap.get(
         useProjectManageStore().selectedPageId
       )?.historyStack"
-      :key="item.sliceValue"
+      :key="index"
     >
       historyStack:
-      {{ JSON.parse(item.sliceValue) }}
+      {{ item.sliceValue }}
     </div>
   </div>
 </template>

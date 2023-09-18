@@ -1,9 +1,11 @@
 import { computed, ref } from 'vue';
 import { defineStore } from 'pinia';
-import { IElement, IPageInterface, IProject } from './type';
+import { E_Direction, IElement, IPageInterface, IProject } from './type';
 import { DrawContainerEventController } from '@/services';
 import { filter, switchMap, takeUntil, tap } from 'rxjs';
 import { useDrawContainerStore, useOperationStackStore } from '.';
+import { deepEqual, deepStrictEqual } from 'assert';
+import { deepClone } from '@/utils';
 
 /**
  * 项目管理数据库
@@ -25,7 +27,8 @@ export const useProjectManageStore = defineStore('projectManageStore', () => {
               size: {
                 width: 200,
                 height: 200
-              }
+              },
+              rotate: 0
             }
           },
           {
@@ -39,7 +42,8 @@ export const useProjectManageStore = defineStore('projectManageStore', () => {
               size: {
                 width: 100,
                 height: 100
-              }
+              },
+              rotate: 0
             }
           }
         ]
@@ -58,7 +62,8 @@ export const useProjectManageStore = defineStore('projectManageStore', () => {
               size: {
                 width: 100,
                 height: 100
-              }
+              },
+              rotate: 0
             }
           }
         ]
@@ -99,7 +104,6 @@ export const useProjectManageStore = defineStore('projectManageStore', () => {
     drawContainerEventController = new DrawContainerEventController(drawContainer);
     operationStackStore.initHistoryStackMap(project);
     registerElementsMoveEvent();
-    registerElementsResizeEvent();
   };
 
   /**
@@ -112,7 +116,10 @@ export const useProjectManageStore = defineStore('projectManageStore', () => {
     drawContainerEventController.mousedown$
       .pipe(
         filter((e) => {
-          return selectedElementsIds.value.includes((e.target as HTMLElement).id);
+          return (
+            selectedElementsIds.value.includes((e.target as HTMLElement).id) &&
+            useDrawContainerStore().cursor === 'default'
+          );
         }),
         tap(() => {
           if (selectMode.value === '单选') {
@@ -129,7 +136,7 @@ export const useProjectManageStore = defineStore('projectManageStore', () => {
                       JSON.stringify(selectedElements.value[0].commonStyle.position) !==
                       tempPosition
                     ) {
-                      operationStackStore.pushStack(JSON.stringify(selectedPage.value.elements));
+                      operationStackStore.pushStack();
                     }
                   }
                 })
@@ -139,66 +146,71 @@ export const useProjectManageStore = defineStore('projectManageStore', () => {
         )
       )
       .subscribe(({ movementX, movementY }) => {
-        selectedElements.value[0].commonStyle.position.top += Math.round(
+        selectedElements.value[0].commonStyle.position.top += Math.trunc(
           movementY / useDrawContainerStore().scale
         );
-        selectedElements.value[0].commonStyle.position.left += Math.round(
+        selectedElements.value[0].commonStyle.position.left += Math.trunc(
           movementX / useDrawContainerStore().scale
         );
       });
   };
 
-  /**
-   * @description 元素大小变更事件注册
-   * @author Mapotato
-   * @date 08/09/2023
-   */
-  const registerElementsResizeEvent = () => {
-    // TODO 接管编辑器组件发出的resize事件
-    // let tempPosition: string;
-    // drawContainerEventController.mousedown$
-    //   .pipe(
-    //     filter((e) => {
-    //       return selectedElementsIds.value.includes((e.target as HTMLElement).id);
-    //     }),
-    //     tap(() => {
-    //       if (selectMode.value === '单选') {
-    //         tempPosition = JSON.stringify(selectedElements.value[0].commonStyle.position);
-    //       }
-    //     }),
-    //     switchMap(() =>
-    //       drawContainerEventController.mousemove$.pipe(
-    //         takeUntil(
-    //           drawContainerEventController.globalMouseup$.pipe(
-    //             tap(() => {
-    //               if (selectMode.value === '单选') {
-    //                 if (
-    //                   JSON.stringify(selectedElements.value[0].commonStyle.position) !==
-    //                   tempPosition
-    //                 ) {
-    //                   operationStackStore.pushStack(JSON.stringify(selectedPage.value.elements));
-    //                 }
-    //               }
-    //             })
-    //           )
-    //         )
-    //       )
-    //     )
-    //   )
-    //   .subscribe(({ movementX, movementY }) => {
-    //     selectedElements.value[0].commonStyle.position.top += Math.round(
-    //       movementY / useDrawContainerStore().scale
-    //     );
-    //     selectedElements.value[0].commonStyle.position.left += Math.round(
-    //       movementX / useDrawContainerStore().scale
-    //     );
-    //   });
+  // 重置大小映射
+  const resizeDirectionMap = {
+    [E_Direction.左上]: [1, 1, -1, -1],
+    [E_Direction.中上]: [1, 0, -1, 0],
+    [E_Direction.右上]: [1, 0, -1, 1],
+    [E_Direction.左中]: [0, 1, 0, -1],
+    [E_Direction.右中]: [0, 0, 0, 1],
+    [E_Direction.左下]: [0, 1, 1, -1],
+    [E_Direction.中下]: [0, 0, 1, 0],
+    [E_Direction.右下]: [0, 0, 1, 1]
+  };
+
+  // 设置当前元素大小
+  const setReSize = (resizeValue: {
+    direction: E_Direction;
+    distanceX: number;
+    distanceY: number;
+  }) => {
+    // 排除比例影响
+    resizeValue.distanceY /= useDrawContainerStore().scale;
+    resizeValue.distanceX /= useDrawContainerStore().scale;
+    if (selectMode.value === '单选') {
+      const [top, left, height, width] = resizeDirectionMap[resizeValue.direction];
+      const { position, size } = selectedElements.value[0].commonStyle;
+      position.top += top * resizeValue.distanceY;
+      position.left += left * resizeValue.distanceX;
+      size.height += height * resizeValue.distanceY;
+      size.width += width * resizeValue.distanceX;
+    }
+  };
+
+  // 设置当前元素旋转角度
+  const setRotate = (rotate: number) => {
+    if (selectMode.value === '单选') {
+      selectedElements.value[0].commonStyle.rotate = rotate;
+    }
   };
 
   const initProject = () => {
     // TODO
     // 获取project数据
     // 数据预处理
+  };
+
+  let stateValue: any;
+
+  const commitState = (type: 'start' | 'end', state: { keyPath: string[] }) => {
+    if (type === 'start') {
+      // TODO
+      // stateValue = deepClone(state.value);
+      return;
+    }
+    // if (JSON.stringify(stateValue) === JSON.stringify(state.value)) {
+    //   return;
+    // }
+    operationStackStore.pushStack();
   };
 
   return {
@@ -208,6 +220,9 @@ export const useProjectManageStore = defineStore('projectManageStore', () => {
     selectedElementsIds,
     selectedElements,
     selectMode,
+    commitState,
+    setReSize,
+    setRotate,
     activeElement,
     activeElements,
     initProject,

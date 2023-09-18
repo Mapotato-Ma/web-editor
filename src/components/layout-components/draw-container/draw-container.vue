@@ -20,11 +20,13 @@
           width: numberToPx(element.commonStyle.size.width),
           height: numberToPx(element.commonStyle.size.height),
           top: numberToPx(element.commonStyle.position.top),
-          left: numberToPx(element.commonStyle.position.left)
+          left: numberToPx(element.commonStyle.position.left),
+          rotate: `${element.commonStyle.rotate}deg`
         }"
         :id="element.elementId"
         :key="element.elementId"
       >
+        {{ JSON.stringify(element, undefined, 4) }}
         <transition name="fade">
           <drag-box
             v-if="

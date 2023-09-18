@@ -1,25 +1,22 @@
 <template>
   <div class="drag-box">
-    <div class="db-rotate"></div>
-    <DBDrag />
+    <div class="db-rotate" ref="rotateHandle"></div>
+    <div class="db-center" ref="rotateCenter"></div>
+    <DOTS />
   </div>
 </template>
 
 <script lang="ts" setup>
-import { filter, fromEvent, tap } from 'rxjs';
-import { onMounted } from 'vue';
+import { Subject, filter, fromEvent, switchMap, takeUntil, tap } from 'rxjs';
+import { onMounted, ref } from 'vue';
 import { createVNode } from 'vue';
+import { useOperationStackStore, useProjectManageStore } from '@/stores';
+import { arcToDeg, setStyle } from '@/utils';
+import { E_Direction } from '@/stores/type';
 
-enum E_Direction {
-  左上 = '左上',
-  中上 = '中上',
-  右上 = '右上',
-  左中 = '左中',
-  右中 = '右中',
-  左下 = '左下',
-  中下 = '中下',
-  右下 = '右下'
-}
+const projectManageStore = useProjectManageStore();
+
+const destroy$ = new Subject();
 
 const dragMap = {
   [E_Direction.左上]: { class: 'db-drag-top-left' },
@@ -32,16 +29,16 @@ const dragMap = {
   [E_Direction.右下]: { class: 'db-drag-bottom-right' }
 };
 
+const mousemove$ = fromEvent<MouseEvent>(document, 'mousemove').pipe(takeUntil(destroy$));
+const mouseup$ = fromEvent<MouseEvent>(document, 'mouseup').pipe(takeUntil(destroy$));
+
 onMounted(() => {
   const operateDom = Array.from(document.getElementsByClassName('db-drag'));
-  const mousemove$ = fromEvent<MouseEvent>(document, 'mousemove');
   operateDom.forEach((element) => {
-    fromEvent<MouseEvent>(element, 'mousedown').subscribe(() =>
-      element.setAttribute('drag-active', 'true')
-    );
-    fromEvent<MouseEvent>(document, 'mouseup').subscribe(() =>
-      element.removeAttribute('drag-active')
-    );
+    fromEvent<MouseEvent>(element, 'mousedown')
+      .pipe(takeUntil(destroy$))
+      .subscribe(() => element.setAttribute('drag-active', 'true'));
+    mouseup$.pipe(takeUntil(destroy$)).subscribe(() => element.removeAttribute('drag-active'));
   });
   if (operateDom.length > 0) {
     mousemove$
@@ -50,22 +47,74 @@ onMounted(() => {
         filter(() => operateDom.some((element) => element.getAttribute('drag-active')))
       )
       .subscribe(({ movementX, movementY }) => {
-        console.log(
-          '🚀 ~ drag-box.vue ~ 49行\n',
-          operateDom
+        projectManageStore.setReSize({
+          direction: operateDom
             .find((element) => element.getAttribute('drag-active'))
-            ?.getAttribute('direction'),
-          movementX,
-          movementY
-        );
+            ?.getAttribute('direction') as E_Direction,
+          distanceX: movementX,
+          distanceY: movementY
+        });
       });
   }
 });
 
-const DBDrag = () =>
+const DOTS = () =>
   Object.values(E_Direction).map((key) =>
     createVNode('div', { class: ['db-drag', dragMap[E_Direction[key]].class], direction: key })
   );
+
+// 旋转把手
+const rotateHandle = ref<HTMLElement>();
+// 旋转中心
+const rotateCenter = ref<HTMLElement>();
+
+onMounted(() => {
+  fromEvent<MouseEvent>(rotateHandle.value!, 'mousedown')
+    .pipe(
+      tap(() => {
+        setStyle(document.getElementById('drawContainer'), [
+          'cursor',
+          'url(cursor-rotate.svg) 15 15,pointer'
+        ]);
+      }),
+      switchMap(() =>
+        mousemove$.pipe(
+          takeUntil(
+            mouseup$.pipe(
+              tap(() => {
+                useOperationStackStore().pushStack();
+                setStyle(document.getElementById('drawContainer'), ['cursor', '']);
+              })
+            )
+          )
+        )
+      ),
+      filter((e) => e.buttons > 0)
+    )
+    .subscribe((e) => {
+      const [centerX, centerY] = [
+        rotateCenter.value!.getBoundingClientRect().x,
+        rotateCenter.value!.getBoundingClientRect().y
+      ];
+      if (e.clientY < centerY) {
+        // 旋转点位于中心点之上
+        const lineB = e.clientX - centerX;
+        const lineC = centerY - e.clientY;
+        projectManageStore.setRotate(Math.trunc(arcToDeg(Math.atan(lineB / lineC))));
+      } else if (e.clientY > centerY) {
+        // 旋转点位于中心点之下
+        const lineB = e.clientX - centerX;
+        const lineC = e.clientY - centerY;
+        projectManageStore.setRotate(180 - Math.trunc(arcToDeg(Math.atan(lineB / lineC))));
+      } else if (e.clientX === centerY && e.clientX > centerX) {
+        // 旋转点在中心点右侧
+        projectManageStore.setRotate(90);
+      } else if (e.clientX === centerY && e.clientX < centerX) {
+        // 旋转点在中心点左侧
+        projectManageStore.setRotate(270);
+      }
+    });
+});
 </script>
 
 <style lang="less" scoped>
@@ -75,6 +124,9 @@ const DBDrag = () =>
   left: 0;
   width: 100%;
   height: 100%;
+  &:active {
+    cursor: move;
+  }
   .db-rotate {
     cursor:
       url(cursor-rotate.svg) 15 15,
@@ -99,6 +151,15 @@ const DBDrag = () =>
       background: #fff;
     }
   }
+  .db-center {
+    width: 1px;
+    height: 1px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    // background-color: #ffffff;
+  }
   :deep(.db-drag) {
     position: absolute;
     width: 10px;
@@ -106,6 +167,7 @@ const DBDrag = () =>
     border-radius: 5px;
     background: #512da8;
     border: 1px solid #fff;
+    transition: box-shadow 233ms;
     &-top-left {
       cursor: nwse-resize;
       top: 0;
@@ -153,6 +215,9 @@ const DBDrag = () =>
       top: 100%;
       left: 100%;
       transform: translate(-50%, -50%);
+    }
+    &[drag-active='true'] {
+      box-shadow: 0 0 2px 3px rgba(255, 255, 255, 0.6);
     }
   }
 }
