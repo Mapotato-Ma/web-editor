@@ -10,7 +10,7 @@
 import { Subject, filter, fromEvent, switchMap, takeUntil, tap } from 'rxjs';
 import { onMounted, ref } from 'vue';
 import { createVNode } from 'vue';
-import { useOperationStackStore, useProjectManageStore } from '@/stores';
+import { useProjectManageStore } from '@/stores';
 import { arcToDeg, setStyle } from '@/utils';
 import { E_Direction } from '@/stores/type';
 
@@ -72,6 +72,7 @@ onMounted(() => {
   fromEvent<MouseEvent>(rotateHandle.value!, 'mousedown')
     .pipe(
       tap(() => {
+        projectManageStore.commitState('start', { keys: ['commonStyle', 'rotate'] });
         setStyle(document.getElementById('drawContainer'), [
           'cursor',
           'url(cursor-rotate.svg) 15 15,pointer'
@@ -82,7 +83,7 @@ onMounted(() => {
           takeUntil(
             mouseup$.pipe(
               tap(() => {
-                useOperationStackStore().pushStack();
+                projectManageStore.commitState('end', { keys: ['commonStyle', 'rotate'] });
                 setStyle(document.getElementById('drawContainer'), ['cursor', '']);
               })
             )

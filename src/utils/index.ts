@@ -1,4 +1,4 @@
-import { isReactive, isRef, toRaw } from 'vue';
+import { isReactive, isRef, toRaw, unref } from 'vue';
 
 /**
  * 清空页面焦点状态
@@ -28,7 +28,7 @@ export const arcToDeg = (arc: number) => arc * (180 / Math.PI);
  */
 export const deepClone = <T>(data: T) => {
   if (isRef(data) || isReactive(data)) {
-    return structuredClone(toRaw(data));
+    return structuredClone(toRaw(unref(data)));
   } else {
     return structuredClone(data);
   }
@@ -42,3 +42,6 @@ export const deepClone = <T>(data: T) => {
 export const setStyle = (dom: HTMLElement | null, [key, value]: string[]) => {
   dom?.style.setProperty(key, value);
 };
+
+export const getObjectAttribute = (object: any, keys: string[]) =>
+  keys.reduce((a, v) => a?.[v], object);

@@ -4,8 +4,7 @@ import { E_Direction, IElement, IPageInterface, IProject } from './type';
 import { DrawContainerEventController } from '@/services';
 import { filter, switchMap, takeUntil, tap } from 'rxjs';
 import { useDrawContainerStore, useOperationStackStore } from '.';
-import { deepEqual, deepStrictEqual } from 'assert';
-import { deepClone } from '@/utils';
+import { deepClone, getObjectAttribute } from '@/utils';
 
 /**
  * 项目管理数据库
@@ -199,18 +198,23 @@ export const useProjectManageStore = defineStore('projectManageStore', () => {
     // 数据预处理
   };
 
+  // 状态值
   let stateValue: any;
 
-  const commitState = (type: 'start' | 'end', state: { keyPath: string[] }) => {
+  /**
+   * 操作状态过滤入栈
+   * @param type 操作类型
+   * @param state 操作状态值
+   * @returns
+   */
+  const commitState = (type: 'start' | 'end', state: { keys: string[] }) => {
+    const extractValue = getObjectAttribute(selectedElements.value[0], state.keys);
     if (type === 'start') {
-      // TODO
-      // stateValue = deepClone(state.value);
+      stateValue = deepClone(extractValue);
       return;
     }
-    // if (JSON.stringify(stateValue) === JSON.stringify(state.value)) {
-    //   return;
-    // }
-    operationStackStore.pushStack();
+    if (JSON.stringify(stateValue) === JSON.stringify(extractValue)) return;
+    void operationStackStore.pushStack();
   };
 
   return {
