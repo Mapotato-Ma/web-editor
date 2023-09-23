@@ -1,10 +1,11 @@
 import { computed, ref } from 'vue';
 import { defineStore } from 'pinia';
-import { E_Direction, IElement, IPageInterface, IProject } from './type';
+import { E_Direction, IPageInterface, IProject } from './type';
 import { DrawContainerEventController } from '@/services';
 import { filter, switchMap, takeUntil, tap } from 'rxjs';
 import { useDrawContainerStore, useOperationStackStore } from '.';
 import { deepClone, getObjectAttribute } from '@/utils';
+import { EElementType, IElement } from './element-type';
 
 /**
  * 项目管理数据库
@@ -17,7 +18,7 @@ export const useProjectManageStore = defineStore('projectManageStore', () => {
         elements: [
           {
             elementId: '页面1-元素1',
-            elementType: '矩形',
+            elementType: EElementType.矩形,
             commonStyle: {
               position: {
                 top: 200,
@@ -32,7 +33,7 @@ export const useProjectManageStore = defineStore('projectManageStore', () => {
           },
           {
             elementId: '页面1-元素2',
-            elementType: '矩形',
+            elementType: EElementType.矩形,
             commonStyle: {
               position: {
                 top: 300,
@@ -52,7 +53,7 @@ export const useProjectManageStore = defineStore('projectManageStore', () => {
         elements: [
           {
             elementId: '页面2-元素1',
-            elementType: '矩形',
+            elementType: EElementType.矩形,
             commonStyle: {
               position: {
                 top: 300,
@@ -76,7 +77,7 @@ export const useProjectManageStore = defineStore('projectManageStore', () => {
   // 当前选中页面id
   const selectedPageId = computed(() => selectedPage.value.pageId);
   // 当前选中元素集合
-  const selectedElements = ref<Array<IElement>>([project.pages[0].elements[0]]);
+  const selectedElements = ref<Array<IElement<unknown>>>([project.pages[0].elements[0]]);
   // 当前选中元素id集合
   const selectedElementsIds = computed(() =>
     selectedElements.value.map((element) => element.elementId)
@@ -94,9 +95,9 @@ export const useProjectManageStore = defineStore('projectManageStore', () => {
   let drawContainerEventController: DrawContainerEventController;
 
   // 单选
-  const activeElement = (element: IElement) => (selectedElements.value = [element]);
+  const activeElement = (element: IElement<unknown>) => (selectedElements.value = [element]);
   // 多选
-  const activeElements = (elements: IElement[]) => (selectedElements.value = elements);
+  const activeElements = (elements: IElement<unknown>[]) => (selectedElements.value = elements);
 
   // 初始化画布控制器
   const initDrawContainerEventController = (drawContainer: HTMLElement) => {
@@ -178,10 +179,21 @@ export const useProjectManageStore = defineStore('projectManageStore', () => {
     if (selectMode.value === '单选') {
       const [top, left, height, width] = resizeDirectionMap[resizeValue.direction];
       const { position, size } = selectedElements.value[0].commonStyle;
-      position.top += top * resizeValue.distanceY;
-      position.left += left * resizeValue.distanceX;
-      size.height += height * resizeValue.distanceY;
-      size.width += width * resizeValue.distanceX;
+      if (
+        selectedElements.value[0].commonStyle.rotate > -45 &&
+        selectedElements.value[0].commonStyle.rotate < 45
+      ) {
+        if (size.height + height * resizeValue.distanceY > 1) {
+          position.top += top * resizeValue.distanceY;
+          size.height += height * resizeValue.distanceY;
+        }
+        if (size.width + width * resizeValue.distanceX > 1) {
+          position.left += left * resizeValue.distanceX;
+          size.width += width * resizeValue.distanceX;
+        }
+      } else {
+        console.log('🚀 ~ 此时调整大小与预期偏差较大 ~ ');
+      }
     }
   };
 
