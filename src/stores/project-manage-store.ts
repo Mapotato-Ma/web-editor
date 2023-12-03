@@ -83,6 +83,11 @@ export const useProjectManageStore = defineStore('projectManageStore', () => {
     selectedElements.value.map((element) => element.elementId)
   );
 
+  // 当前选中元素集合数据副本，用于属性面板
+  const selectedElementsCopyForPropertyPanel = ref<Array<IElement<unknown>>>(
+    deepClone(selectedElements.value)
+  );
+
   // 撤销回退数据库
   const operationStackStore = useOperationStackStore();
 
@@ -112,7 +117,7 @@ export const useProjectManageStore = defineStore('projectManageStore', () => {
    * @date 08/09/2023
    */
   const registerElementsMoveEvent = () => {
-    let tempPosition: string;
+    let _position: string;
     drawContainerEventController.mousedown$
       .pipe(
         filter((e) => {
@@ -123,7 +128,7 @@ export const useProjectManageStore = defineStore('projectManageStore', () => {
         }),
         tap(() => {
           if (selectMode.value === '单选') {
-            tempPosition = JSON.stringify(selectedElements.value[0].commonStyle.position);
+            _position = JSON.stringify(selectedElements.value[0].commonStyle.position);
           }
         }),
         switchMap(() =>
@@ -133,8 +138,7 @@ export const useProjectManageStore = defineStore('projectManageStore', () => {
                 tap(() => {
                   if (selectMode.value === '单选') {
                     if (
-                      JSON.stringify(selectedElements.value[0].commonStyle.position) !==
-                      tempPosition
+                      JSON.stringify(selectedElements.value[0].commonStyle.position) !== _position
                     ) {
                       operationStackStore.pushStack();
                     }
@@ -211,7 +215,7 @@ export const useProjectManageStore = defineStore('projectManageStore', () => {
   };
 
   // 状态值
-  let stateValue: any;
+  let stateValue: unknown;
 
   /**
    * 操作状态过滤入栈
@@ -236,6 +240,7 @@ export const useProjectManageStore = defineStore('projectManageStore', () => {
     selectedElementsIds,
     selectedElements,
     selectMode,
+    selectedElementsCopyForPropertyPanel,
     commitState,
     setReSize,
     setRotate,

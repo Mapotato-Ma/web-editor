@@ -36,20 +36,32 @@ onMounted(() => {
   const operateDom = Array.from(document.getElementsByClassName('db-drag'));
   operateDom.forEach((element) => {
     fromEvent<MouseEvent>(element, 'mousedown')
-      .pipe(takeUntil(destroy$))
-      .subscribe(() => element.setAttribute('drag-active', 'true'));
-    mouseup$.pipe(takeUntil(destroy$)).subscribe(() => element.removeAttribute('drag-active'));
+      .pipe(
+        takeUntil(destroy$),
+        tap((e) => {
+          console.log('🚀 ~ 鼠标按下 ~ 49行');
+          e.stopPropagation();
+          projectManageStore.commitState('start', { keys: ['commonStyle', 'size'] });
+        })
+      )
+      .subscribe(() => element.setAttribute('id', 'drag-active'));
+  });
+  mouseup$.pipe(takeUntil(destroy$)).subscribe(() => {
+    // console.log('🚀 ~ 鼠标抬起 ~ 49行');
+    // projectManageStore.commitState('end', { keys: ['commonStyle', 'size'] });
+    // document.getElementById('drag-active')?.removeAttribute('id');
   });
   if (operateDom.length > 0) {
     mousemove$
       .pipe(
         tap((e) => e.preventDefault()),
-        filter(() => operateDom.some((element) => element.getAttribute('drag-active')))
+        filter(() => operateDom.some((element) => element.getAttribute('id')))
+        // TODO: 鼠标抬起后，停止移动
       )
       .subscribe(({ movementX, movementY }) => {
         projectManageStore.setReSize({
           direction: operateDom
-            .find((element) => element.getAttribute('drag-active'))
+            .find((element) => element.getAttribute('id'))
             ?.getAttribute('direction') as E_Direction,
           distanceX: movementX,
           distanceY: movementY
@@ -71,7 +83,8 @@ const rotateCenter = ref<HTMLElement>();
 onMounted(() => {
   fromEvent<MouseEvent>(rotateHandle.value!, 'mousedown')
     .pipe(
-      tap(() => {
+      tap((e) => {
+        e.stopPropagation();
         projectManageStore.commitState('start', { keys: ['commonStyle', 'rotate'] });
         setStyle(document.getElementById('drawContainer'), [
           'cursor',

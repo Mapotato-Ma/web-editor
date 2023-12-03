@@ -1,5 +1,5 @@
 <template>
-  <div class="property-panel bg-grey-darken-3">
+  <div class="property-panel bg-grey-darken-3" v-if="PropertyPanelData">
     <div>
       historyStackPointer:
       {{
@@ -7,20 +7,34 @@
           ?.historyStackPointer
       }}
     </div>
-    <div
-      v-for="(item, index) in useOperationStackStore().historyStackMap.get(
-        useProjectManageStore().selectedPageId
-      )?.historyStack"
-      :key="index"
-    >
-      historyStack:
-      {{ item.sliceValue }}
-    </div>
+    <!-- 公共样式 -->
+    <!-- 宽高 -->
+    <v-layout column>
+      <v-text-field
+        name="width"
+        label="宽"
+        suffix="px"
+        v-model="PropertyPanelData.selectedElements[0].commonStyle.size.width"
+      ></v-text-field>
+      <v-text-field
+        name="height"
+        label="高"
+        suffix="px"
+        v-model="PropertyPanelData.selectedElements[0].commonStyle.size.height"
+      ></v-text-field>
+    </v-layout>
   </div>
 </template>
 
 <script lang="ts" setup>
+import { onMounted, ref } from 'vue';
 import { useOperationStackStore, useProjectManageStore } from '@/stores';
+
+let PropertyPanelData = ref();
+onMounted(async () => {
+  PropertyPanelData.value = (await import('./property-panel.service')).PropertyPanelData;
+  console.log('🚀 ~  ~ 28行', PropertyPanelData);
+});
 </script>
 
 <style lang="less" scoped>

@@ -58,12 +58,24 @@ export class DrawContainerEventController {
     this.globalMousemove$ = fromEvent<MouseEvent>(document, 'mousemove');
     this.ctrlDown$ = this.globalKeydown$.pipe(filter((e) => e.ctrlKey));
     this.spaceDown$ = this.globalKeydown$.pipe(filter((e) => e.code === 'Space'));
-    this.mousedown$ = fromEvent<MouseEvent>(drawContainer, 'mousedown');
-    this.mouseup$ = fromEvent<MouseEvent>(drawContainer, 'mouseup');
-    this.wheel$ = fromEvent<WheelEvent>(drawContainer, 'wheel');
-    this.mousemove$ = fromEvent<MouseEvent>(drawContainer, 'mousemove');
-    this.mouseleave$ = fromEvent<MouseEvent>(drawContainer, 'mouseleave');
-    this.click$ = fromEvent<MouseEvent>(drawContainer, 'click');
+    this.mousedown$ = fromEvent<MouseEvent>(drawContainer, 'mousedown').pipe(
+      tap((e) => e.stopPropagation())
+    );
+    this.mouseup$ = fromEvent<MouseEvent>(drawContainer, 'mouseup').pipe(
+      tap((e) => e.stopPropagation())
+    );
+    this.wheel$ = fromEvent<WheelEvent>(drawContainer, 'wheel').pipe(
+      tap((e) => e.stopPropagation())
+    );
+    this.mousemove$ = fromEvent<MouseEvent>(drawContainer, 'mousemove').pipe(
+      tap((e) => e.stopPropagation())
+    );
+    this.mouseleave$ = fromEvent<MouseEvent>(drawContainer, 'mouseleave').pipe(
+      tap((e) => e.stopPropagation())
+    );
+    this.click$ = fromEvent<MouseEvent>(drawContainer, 'click').pipe(
+      tap((e) => e.stopPropagation())
+    );
   }
 
   /**
