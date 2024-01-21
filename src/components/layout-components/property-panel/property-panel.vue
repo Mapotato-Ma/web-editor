@@ -10,18 +10,10 @@
     <!-- 公共样式 -->
     <!-- 宽高 -->
     <v-layout column>
-      <v-text-field
-        name="width"
-        label="宽"
-        suffix="px"
-        v-model="PropertyPanelData.selectedElements[0].commonStyle.size.width"
-      ></v-text-field>
-      <v-text-field
-        name="height"
-        label="高"
-        suffix="px"
-        v-model="PropertyPanelData.selectedElements[0].commonStyle.size.height"
-      ></v-text-field>
+      <v-text-field name="width" label="宽" suffix="px"
+        v-model="PropertyPanelData.selectedElements[0].commonStyle.size.width"></v-text-field>
+      <v-text-field name="height" label="高" suffix="px"
+        v-model="PropertyPanelData.selectedElements[0].commonStyle.size.height"></v-text-field>
     </v-layout>
   </div>
 </template>
@@ -33,7 +25,7 @@ import { useOperationStackStore, useProjectManageStore } from '@/stores';
 let PropertyPanelData = ref();
 onMounted(async () => {
   PropertyPanelData.value = (await import('./property-panel.service')).PropertyPanelData;
-  console.log('🚀 ~  ~ 28行', PropertyPanelData);
+  console.log('🚀 ~ 面板数据 ~ 28行', PropertyPanelData.value);
 });
 </script>
 

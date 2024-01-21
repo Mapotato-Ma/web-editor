@@ -10,25 +10,17 @@
     </div>
     <div class="middle-regions">
       <v-btn-group>
-        <v-btn
-          v-for="zoom in drawContainerStore.zoomOptions"
-          :key="zoom"
-          :value="zoom"
-          @click="selectZoom(zoom)"
-          :class="{ 'bg-deep-purple-accent-3': zoom === drawContainerStore.scaleRelatedZoom }"
-        >
+        <v-btn v-for="zoom in drawContainerStore.zoomOptions" :key="zoom" :value="zoom" @click="selectZoom(zoom)"
+          :class="{ 'bg-deep-purple-accent-3': zoom === drawContainerStore.scaleRelatedZoom }">
           {{ zoom }}%
         </v-btn>
       </v-btn-group>
       <v-btn-group>
-        <v-btn
-          size="large"
-          @click="
-            clearFocusStatus();
-            drawContainerStore.centeredDrawContainer();
-          "
-        >
-          居中画布
+        <v-btn size="large" @click="
+          clearFocusStatus();
+        drawContainerStore.centeredDrawContainer();
+        ">
+          适应屏幕
         </v-btn>
       </v-btn-group>
     </div>
