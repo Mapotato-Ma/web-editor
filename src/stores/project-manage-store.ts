@@ -28,7 +28,7 @@ export const useProjectManageStore = defineStore('projectManageStore', () => {
                 width: 200,
                 height: 200
               },
-              rotate: 0
+              rotate: 135
             }
           },
           {
@@ -162,14 +162,25 @@ export const useProjectManageStore = defineStore('projectManageStore', () => {
   // 重置大小映射
   const resizeDirectionMap = {
     [E_Direction.左上]: [1, 1, -1, -1],
-    [E_Direction.中上]: [1, 0, -1, 0],
-    [E_Direction.右上]: [1, 0, -1, 1],
-    [E_Direction.左中]: [0, 1, 0, -1],
-    [E_Direction.右中]: [0, 0, 0, 1],
-    [E_Direction.左下]: [0, 1, 1, -1],
-    [E_Direction.中下]: [0, 0, 1, 0],
-    [E_Direction.右下]: [0, 0, 1, 1]
+    [E_Direction.中上]: [1, 1, -1, 0],
+    [E_Direction.右上]: [1, 1, -1, 1],
+    [E_Direction.左中]: [1, 1, 0, -1],
+    [E_Direction.右中]: [1, 1, 0, 1],
+    [E_Direction.左下]: [1, 1, 1, -1],
+    [E_Direction.中下]: [1, 1, 1, 0],
+    [E_Direction.右下]: [1, 1, 1, 1]
   };
+  // // 重置大小映射
+  // const resizeDirectionMap = {
+  //   [E_Direction.左上]: [1, 1, -1, -1],
+  //   [E_Direction.中上]: [1, 0, -1, 0],
+  //   [E_Direction.右上]: [1, 0, -1, 1],
+  //   [E_Direction.左中]: [0, 1, 0, -1],
+  //   [E_Direction.右中]: [0, 0, 0, 1],
+  //   [E_Direction.左下]: [0, 1, 1, -1],
+  //   [E_Direction.中下]: [0, 0, 1, 0],
+  //   [E_Direction.右下]: [0, 0, 1, 1]
+  // };
 
   // 设置当前元素大小
   const setReSize = (resizeValue: {
@@ -181,23 +192,35 @@ export const useProjectManageStore = defineStore('projectManageStore', () => {
     resizeValue.distanceY /= useDrawContainerStore().scale;
     resizeValue.distanceX /= useDrawContainerStore().scale;
     if (selectMode.value === '单选') {
-      const [top, left, height, width] = resizeDirectionMap[resizeValue.direction];
-      const { position, size } = selectedElements.value[0].commonStyle;
-      if (
-        selectedElements.value[0].commonStyle.rotate > -45 &&
-        selectedElements.value[0].commonStyle.rotate < 45
-      ) {
-        if (size.height + height * resizeValue.distanceY > 1) {
-          position.top += top * resizeValue.distanceY;
-          size.height += height * resizeValue.distanceY;
-        }
-        if (size.width + width * resizeValue.distanceX > 1) {
-          position.left += left * resizeValue.distanceX;
-          size.width += width * resizeValue.distanceX;
-        }
-      } else {
-        console.log('🚀 ~ 此时调整大小与预期偏差较大 ~ ');
-      }
+      const [height, width] = resizeDirectionMap[resizeValue.direction];
+      const { size } = selectedElements.value[0].commonStyle;
+      // if (size.height + height * resizeValue.distanceY > 1) {
+      //   // position.top += top * resizeValue.distanceY;
+      //   size.height += height * resizeValue.distanceY;
+      // }
+      console.log('🚀 ~ height ~ 201行', size.height);
+      console.log('🚀 ~ height * resizeValue.distanceY ~ 201行', height * resizeValue.distanceY);
+      size.height += height * resizeValue.distanceY;
+      size.width += width * resizeValue.distanceX;
+      // if (size.width + width * resizeValue.distanceX > 1) {
+      //   // position.left += left * resizeValue.distanceX;
+      //   size.width += width * resizeValue.distanceX;
+      // }
+      // if (
+      //   selectedElements.value[0].commonStyle.rotate > -45 &&
+      //   selectedElements.value[0].commonStyle.rotate < 45
+      // ) {
+      //   if (size.height + height * resizeValue.distanceY > 1) {
+      //     // position.top += top * resizeValue.distanceY;
+      //     size.height += height * resizeValue.distanceY;
+      //   }
+      //   if (size.width + width * resizeValue.distanceX > 1) {
+      //     // position.left += left * resizeValue.distanceX;
+      //     size.width += width * resizeValue.distanceX;
+      //   }
+      // } else {
+      //   // console.log('🚀 ~ 此时调整大小与预期偏差较大 ~ ');
+      // }
     }
   };
 

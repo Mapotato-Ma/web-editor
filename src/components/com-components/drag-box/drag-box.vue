@@ -97,6 +97,7 @@ const DOTS = () =>
     background: #512da8;
     border: 1px solid #fff;
     transition: box-shadow 233ms;
+    // display: none;
 
     &-top-left {
       cursor: nwse-resize;
@@ -152,6 +153,7 @@ const DOTS = () =>
       top: 100%;
       left: 100%;
       transform: translate(-50%, -50%);
+      display: block;
     }
 
     &[id='drag-active'] {
