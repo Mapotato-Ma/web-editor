@@ -44,7 +44,7 @@ export class DrawContainerEventController {
     // 画布赋能
     this.drawMove();
     this.drawScale();
-    this.drawClick();
+    // this.drawClick();
   }
 
   /**

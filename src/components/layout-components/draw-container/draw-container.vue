@@ -19,24 +19,14 @@
         :style="{
           width: numberToPx(element.commonStyle.size.width),
           height: numberToPx(element.commonStyle.size.height),
-          top: numberToPx(element.commonStyle.position.top),
-          left: numberToPx(element.commonStyle.position.left),
-          rotate: `${element.commonStyle.rotate}deg`
+          transform: element.commonStyle.transform
         }"
         :id="element.elementId"
         :key="element.elementId"
       >
         {{ JSON.stringify(element, undefined, 4) }}
-        <transition name="fade">
-          <drag-box
-            v-if="
-              projectManageStore.selectMode === '单选' &&
-              projectManageStore.selectedElementsIds.includes(element.elementId)
-            "
-            :id="element.elementId"
-          ></drag-box>
-        </transition>
       </div>
+      <drag-box></drag-box>
     </div>
   </div>
 </template>
@@ -61,6 +51,10 @@ onMounted(() => {
   projectManageStore.initDrawContainerEventController(drawContainer.value!);
   // 居中画布
   drawContainerStore.centeredDrawContainer();
+  projectManageStore.activeElements([
+    projectManageStore.project.pages[0].elements[0],
+    projectManageStore.project.pages[0].elements[1]
+  ]);
 });
 </script>
 

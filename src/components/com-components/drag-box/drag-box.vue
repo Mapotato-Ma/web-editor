@@ -1,164 +1,109 @@
 <template>
-  <div class="drag-box">
-    <DOTS />
-  </div>
+  <Moveable
+    ref="moveable"
+    :origin="false"
+    :target="selector"
+    :draggable="true"
+    :rotatable="true"
+    :resizable="true"
+    :renderDirections="['n', 'nw', 'ne', 's', 'se', 'sw', 'e', 'w']"
+    :throttleResize="5"
+    @dragGroup="onDragGroup"
+    @drag="onDrag"
+    @resizeGroup="onResizeGroup"
+    @resize="onResize"
+    @rotateGroup="onRotateGroup"
+    @rotate="onRotate"
+    @render="onRender"
+  ></Moveable>
 </template>
 
 <script lang="ts" setup>
-import { Subject, filter, fromEvent, takeUntil, tap } from 'rxjs';
-import { onMounted } from 'vue';
-import { createVNode } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useProjectManageStore } from '@/stores';
-import { E_Direction } from '@/stores/type';
-
+import Moveable, {
+  OnDrag,
+  OnDragGroup,
+  OnRender,
+  OnResize,
+  OnResizeGroup,
+  OnRotate,
+  OnRotateGroup
+} from 'vue3-moveable';
 const projectManageStore = useProjectManageStore();
-
-const destroy$ = new Subject();
-
-const dragMap = {
-  [E_Direction.左上]: { class: 'db-drag-top-left' },
-  [E_Direction.中上]: { class: 'db-drag-top-center' },
-  [E_Direction.右上]: { class: 'db-drag-top-right' },
-  [E_Direction.左中]: { class: 'db-drag-center-left' },
-  [E_Direction.右中]: { class: 'db-drag-center-right' },
-  [E_Direction.左下]: { class: 'db-drag-bottom-left' },
-  [E_Direction.中下]: { class: 'db-drag-bottom-center' },
-  [E_Direction.右下]: { class: 'db-drag-bottom-right' }
+const onRender = (e: OnRender) => {
+  console.log('🚀 ~ e ~ 53行', e);
+  e.target.style.cssText += e.cssText;
+};
+const onDragGroup = ({ events }: OnDragGroup) => {
+  events.forEach((ev) => {
+    ev.target!.style.transform = ev.transform;
+  });
+  projectManageStore.setTransformGroup(events.map((ev: any) => ev.transform));
+};
+const onDrag = ({ target, transform }: OnDrag) => {
+  target.style.transform = transform;
+  projectManageStore.setTransform(transform);
+};
+const onResize = ({ target, width, height, drag }: OnResize) => {
+  target.style.width = `${width}px`;
+  target.style.height = `${height}px`;
+  target.style.transform = drag.transform;
+  projectManageStore.setReSize(width, height);
+  projectManageStore.setTransform(drag.transform);
+};
+const onResizeGroup = ({ events }: OnResizeGroup) => {
+  events.forEach((ev: any) => {
+    ev.target.style.width = `${ev.width}px`;
+    ev.target.style.height = `${ev.height}px`;
+    ev.target.style.transform = ev.drag.transform;
+  });
+  const sizes = events.map((ev: any) => ({ width: ev.width, height: ev.height }));
+  projectManageStore.setReSizeGroup(sizes);
+  projectManageStore.setTransformGroup(events.map((ev: any) => ev.transform));
+};
+const onRotate = ({ target, drag }: OnRotate) => {
+  target.style.transform = drag.transform;
+  projectManageStore.setTransform(drag.transform);
+};
+const onRotateGroup = ({ events }: OnRotateGroup) => {
+  events.forEach((ev: any) => {
+    ev.target!.style.transform = ev.transform;
+  });
+  projectManageStore.setTransformGroup(events.map((ev: any) => ev.transform));
 };
 
-const mousemove$ = fromEvent<MouseEvent>(document, 'mousemove').pipe(takeUntil(destroy$));
-const mouseup$ = fromEvent<MouseEvent>(document, 'mouseup').pipe(takeUntil(destroy$));
+// const onResizeStart = ({ target, drag }: any) => {
+//   console.log('🚀 ~ 触发onResizeStart ~ 36行', target, drag);
+// };
+// const onResizeEnd = ({ target, drag }: any) => {
+//   console.log('🚀 ~ 触发onResizeEnd ~ 36行', target, drag);
+// };
+
+// const onDragStart = ({ target }: any) => {
+//   console.log('🚀 ~ 触发dragStart ~ 36行', target);
+// };
+// const onDragEnd = ({ target }: any) => {
+//   console.log('🚀 ~ 触发dragStart ~ 36行', target);
+// };
+
+const selector = computed(() => {
+  // Moveable.updateTarget();
+  moveable.value?.updateSelectors();
+  return projectManageStore.selectedElementsIds.map((id) => `#${id}`);
+});
+const moveable = ref<Moveable>();
 
 onMounted(() => {
-  const operateDom = Array.from(document.getElementsByClassName('db-drag'));
-  operateDom.forEach((element) => {
-    fromEvent<MouseEvent>(element, 'mousedown')
-      .pipe(
-        takeUntil(destroy$),
-        tap((e) => {
-          e.stopPropagation();
-          projectManageStore.commitState('start', { keys: ['commonStyle', 'size'] });
-        })
-      )
-      .subscribe(() => element.setAttribute('id', 'drag-active'));
-  });
-  mouseup$
-    .pipe(
-      takeUntil(destroy$),
-      filter(() => !!document.getElementById('drag-active')) // 解决在画布任意地方鼠标抬起触发冗余入栈操作的问题
-    )
-    .subscribe(() => {
-      projectManageStore.commitState('end', { keys: ['commonStyle', 'size'] });
-      document.getElementById('drag-active')?.removeAttribute('id');
-    });
-  if (operateDom.length > 0) {
-    mousemove$
-      .pipe(
-        tap((e) => e.preventDefault()),
-        filter((e) => {
-          return operateDom.some((element) => element.getAttribute('id')) && e.buttons === 1;
-        })
-      )
-      .subscribe(({ movementX, movementY }) => {
-        projectManageStore.setReSize({
-          direction: operateDom
-            .find((element) => element.getAttribute('id'))
-            ?.getAttribute('direction') as E_Direction,
-          distanceX: movementX,
-          distanceY: movementY
-        });
-      });
-  }
+  console.log('🚀 ~ moveable ~ 116行', moveable);
 });
-
-const DOTS = () =>
-  Object.values(E_Direction).map((key) =>
-    createVNode('div', { class: ['db-drag', dragMap[E_Direction[key]].class], direction: key })
-  );
 </script>
 
 <style lang="less" scoped>
 .drag-box {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-
-  &:active {
-    cursor: move;
-  }
-
-  :deep(.db-drag) {
-    position: absolute;
-    width: 10px;
-    height: 10px;
-    border-radius: 5px;
-    background: #512da8;
-    border: 1px solid #fff;
-    transition: box-shadow 233ms;
-    // display: none;
-
-    &-top-left {
-      cursor: nwse-resize;
-      top: 0;
-      left: 0;
-      transform: translate(-50%, -50%);
-    }
-
-    &-top-center {
-      cursor: ns-resize;
-      top: 0;
-      left: 50%;
-      transform: translate(-50%, -50%);
-    }
-
-    &-top-right {
-      cursor: nesw-resize;
-      top: 0;
-      left: 100%;
-      transform: translate(-50%, -50%);
-    }
-
-    &-center-left {
-      cursor: ew-resize;
-      top: 50%;
-      left: 0;
-      transform: translate(-50%, -50%);
-    }
-
-    &-center-right {
-      cursor: ew-resize;
-      top: 50%;
-      left: 100%;
-      transform: translate(-50%, -50%);
-    }
-
-    &-bottom-left {
-      cursor: nesw-resize;
-      top: 100%;
-      left: 0;
-      transform: translate(-50%, -50%);
-    }
-
-    &-bottom-center {
-      cursor: ns-resize;
-      top: 100%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-    }
-
-    &-bottom-right {
-      cursor: nwse-resize;
-      top: 100%;
-      left: 100%;
-      transform: translate(-50%, -50%);
-      display: block;
-    }
-
-    &[id='drag-active'] {
-      box-shadow: 0 0 2px 3px rgba(255, 255, 255, 0.6);
-    }
+  position: relative;
+  .moveable {
+    background-color: red;
   }
 }
 </style>

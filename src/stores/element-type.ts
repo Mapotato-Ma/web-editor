@@ -5,15 +5,11 @@ export interface IElement<T> {
   elementId: string;
   elementType: EElementType;
   commonStyle: {
-    position: {
-      top: number;
-      left: number;
-    };
     size: {
       width: number;
       height: number;
     };
-    rotate: number;
+    transform: string;
   };
   privateStyle?: T;
 }

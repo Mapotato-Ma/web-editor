@@ -20,30 +20,22 @@ export const useProjectManageStore = defineStore('projectManageStore', () => {
             elementId: '页面1-元素1',
             elementType: EElementType.矩形,
             commonStyle: {
-              position: {
-                top: 200,
-                left: 200
-              },
               size: {
                 width: 200,
                 height: 200
               },
-              rotate: 135
+              transform: 'transform(200px, 200px) rotate(50deg)'
             }
           },
           {
             elementId: '页面1-元素2',
             elementType: EElementType.矩形,
             commonStyle: {
-              position: {
-                top: 300,
-                left: 800
-              },
               size: {
                 width: 100,
                 height: 100
               },
-              rotate: 0
+              transform: 'transform(700px, 300px) rotate(20deg)'
             }
           }
         ]
@@ -108,7 +100,7 @@ export const useProjectManageStore = defineStore('projectManageStore', () => {
   const initDrawContainerEventController = (drawContainer: HTMLElement) => {
     drawContainerEventController = new DrawContainerEventController(drawContainer);
     operationStackStore.initHistoryStackMap(project);
-    registerElementsMoveEvent();
+    // registerElementsMoveEvent();
   };
 
   /**
@@ -116,119 +108,126 @@ export const useProjectManageStore = defineStore('projectManageStore', () => {
    * @author Mapotato
    * @date 08/09/2023
    */
-  const registerElementsMoveEvent = () => {
-    let _position: string;
-    drawContainerEventController.mousedown$
-      .pipe(
-        filter((e) => {
-          return (
-            selectedElementsIds.value.includes((e.target as HTMLElement).id) &&
-            useDrawContainerStore().cursor === 'default'
-          );
-        }),
-        tap(() => {
-          if (selectMode.value === '单选') {
-            _position = JSON.stringify(selectedElements.value[0].commonStyle.position);
-          }
-        }),
-        switchMap(() =>
-          drawContainerEventController.mousemove$.pipe(
-            takeUntil(
-              drawContainerEventController.globalMouseup$.pipe(
-                tap(() => {
-                  if (selectMode.value === '单选') {
-                    if (
-                      JSON.stringify(selectedElements.value[0].commonStyle.position) !== _position
-                    ) {
-                      operationStackStore.pushStack();
-                    }
-                  }
-                })
-              )
-            )
-          )
-        )
-      )
-      .subscribe(({ movementX, movementY }) => {
-        selectedElements.value[0].commonStyle.position.top += Math.trunc(
-          movementY / useDrawContainerStore().scale
-        );
-        selectedElements.value[0].commonStyle.position.left += Math.trunc(
-          movementX / useDrawContainerStore().scale
-        );
-      });
-  };
+  // const registerElementsMoveEvent = () => {
+  //   let _position: string;
+  //   drawContainerEventController.mousedown$
+  //     .pipe(
+  //       filter((e) => {
+  //         return (
+  //           selectedElementsIds.value.includes((e.target as HTMLElement).id) &&
+  //           useDrawContainerStore().cursor === 'default'
+  //         );
+  //       }),
+  //       tap(() => {
+  //         if (selectMode.value === '单选') {
+  //           _position = JSON.stringify(selectedElements.value[0].commonStyle.position);
+  //         }
+  //       }),
+  //       switchMap(() =>
+  //         drawContainerEventController.mousemove$.pipe(
+  //           takeUntil(
+  //             drawContainerEventController.globalMouseup$.pipe(
+  //               tap(() => {
+  //                 if (selectMode.value === '单选') {
+  //                   if (
+  //                     JSON.stringify(selectedElements.value[0].commonStyle.position) !== _position
+  //                   ) {
+  //                     operationStackStore.pushStack();
+  //                   }
+  //                 }
+  //               })
+  //             )
+  //           )
+  //         )
+  //       )
+  //     )
+  //     .subscribe(({ movementX, movementY }) => {
+  //       selectedElements.value[0].commonStyle.position.top += Math.trunc(
+  //         movementY / useDrawContainerStore().scale
+  //       );
+  //       selectedElements.value[0].commonStyle.position.left += Math.trunc(
+  //         movementX / useDrawContainerStore().scale
+  //       );
+  //     });
+  // };
 
   // 重置大小映射
-  const resizeDirectionMap = {
-    [E_Direction.左上]: [1, 1, -1, -1],
-    [E_Direction.中上]: [1, 1, -1, 0],
-    [E_Direction.右上]: [1, 1, -1, 1],
-    [E_Direction.左中]: [1, 1, 0, -1],
-    [E_Direction.右中]: [1, 1, 0, 1],
-    [E_Direction.左下]: [1, 1, 1, -1],
-    [E_Direction.中下]: [1, 1, 1, 0],
-    [E_Direction.右下]: [1, 1, 1, 1]
-  };
-  // // 重置大小映射
   // const resizeDirectionMap = {
   //   [E_Direction.左上]: [1, 1, -1, -1],
-  //   [E_Direction.中上]: [1, 0, -1, 0],
-  //   [E_Direction.右上]: [1, 0, -1, 1],
-  //   [E_Direction.左中]: [0, 1, 0, -1],
-  //   [E_Direction.右中]: [0, 0, 0, 1],
-  //   [E_Direction.左下]: [0, 1, 1, -1],
-  //   [E_Direction.中下]: [0, 0, 1, 0],
-  //   [E_Direction.右下]: [0, 0, 1, 1]
+  //   [E_Direction.中上]: [1, 1, -1, 0],
+  //   [E_Direction.右上]: [1, 1, -1, 1],
+  //   [E_Direction.左中]: [1, 1, 0, -1],
+  //   [E_Direction.右中]: [1, 1, 0, 1],
+  //   [E_Direction.左下]: [1, 1, 1, -1],
+  //   [E_Direction.中下]: [1, 1, 1, 0],
+  //   [E_Direction.右下]: [1, 1, 1, 1]
   // };
 
   // 设置当前元素大小
-  const setReSize = (resizeValue: {
-    direction: E_Direction;
-    distanceX: number;
-    distanceY: number;
-  }) => {
-    // 排除比例影响
-    resizeValue.distanceY /= useDrawContainerStore().scale;
-    resizeValue.distanceX /= useDrawContainerStore().scale;
-    if (selectMode.value === '单选') {
-      const [height, width] = resizeDirectionMap[resizeValue.direction];
-      const { size } = selectedElements.value[0].commonStyle;
-      // if (size.height + height * resizeValue.distanceY > 1) {
-      //   // position.top += top * resizeValue.distanceY;
-      //   size.height += height * resizeValue.distanceY;
-      // }
-      console.log('🚀 ~ height ~ 201行', size.height);
-      console.log('🚀 ~ height * resizeValue.distanceY ~ 201行', height * resizeValue.distanceY);
-      size.height += height * resizeValue.distanceY;
-      size.width += width * resizeValue.distanceX;
-      // if (size.width + width * resizeValue.distanceX > 1) {
-      //   // position.left += left * resizeValue.distanceX;
-      //   size.width += width * resizeValue.distanceX;
-      // }
-      // if (
-      //   selectedElements.value[0].commonStyle.rotate > -45 &&
-      //   selectedElements.value[0].commonStyle.rotate < 45
-      // ) {
-      //   if (size.height + height * resizeValue.distanceY > 1) {
-      //     // position.top += top * resizeValue.distanceY;
-      //     size.height += height * resizeValue.distanceY;
-      //   }
-      //   if (size.width + width * resizeValue.distanceX > 1) {
-      //     // position.left += left * resizeValue.distanceX;
-      //     size.width += width * resizeValue.distanceX;
-      //   }
-      // } else {
-      //   // console.log('🚀 ~ 此时调整大小与预期偏差较大 ~ ');
-      // }
-    }
+  // const setReSize = (resizeValue: {
+  //   direction: E_Direction;
+  //   distanceX: number;
+  //   distanceY: number;
+  // }) => {
+  //   // 排除比例影响
+  //   resizeValue.distanceY /= useDrawContainerStore().scale;
+  //   resizeValue.distanceX /= useDrawContainerStore().scale;
+  //   if (selectMode.value === '单选') {
+  //     const [height, width] = resizeDirectionMap[resizeValue.direction];
+  //     const { size } = selectedElements.value[0].commonStyle;
+  //     // if (size.height + height * resizeValue.distanceY > 1) {
+  //     //   // position.top += top * resizeValue.distanceY;
+  //     //   size.height += height * resizeValue.distanceY;
+  //     // }
+  //     console.log('🚀 ~ height ~ 201行', size.height);
+  //     console.log('🚀 ~ height * resizeValue.distanceY ~ 201行', height * resizeValue.distanceY);
+  //     size.height += height * resizeValue.distanceY;
+  //     size.width += width * resizeValue.distanceX;
+  //     // if (size.width + width * resizeValue.distanceX > 1) {
+  //     //   // position.left += left * resizeValue.distanceX;
+  //     //   size.width += width * resizeValue.distanceX;
+  //     // }
+  //     // if (
+  //     //   selectedElements.value[0].commonStyle.rotate > -45 &&
+  //     //   selectedElements.value[0].commonStyle.rotate < 45
+  //     // ) {
+  //     //   if (size.height + height * resizeValue.distanceY > 1) {
+  //     //     // position.top += top * resizeValue.distanceY;
+  //     //     size.height += height * resizeValue.distanceY;
+  //     //   }
+  //     //   if (size.width + width * resizeValue.distanceX > 1) {
+  //     //     // position.left += left * resizeValue.distanceX;
+  //     //     size.width += width * resizeValue.distanceX;
+  //     //   }
+  //     // } else {
+  //     //   // console.log('🚀 ~ 此时调整大小与预期偏差较大 ~ ');
+  //     // }
+  //   }
+  // };
+
+  // 设置元素大小
+  const setReSize = (width: number, height: number) => {
+    const { size } = selectedElements.value[0].commonStyle;
+    size.width = width;
+    size.height = height;
+  };
+  // 批量设置元素大小
+  const setReSizeGroup = (sizes: { width: number; height: number }[]) => {
+    selectedElements.value.forEach((element) => {
+      element.commonStyle.size = sizes.shift()!;
+    });
   };
 
-  // 设置当前元素旋转角度
-  const setRotate = (rotate: number) => {
-    if (selectMode.value === '单选') {
-      selectedElements.value[0].commonStyle.rotate = rotate;
-    }
+  // 设置元素变换
+  const setTransform = (transform: string) => {
+    selectedElements.value[0].commonStyle.transform = transform;
+  };
+
+  // 批量设置元素变换
+  const setTransformGroup = (transformGroup: string[]) => {
+    selectedElements.value.forEach((element) => {
+      element.commonStyle.transform = transformGroup.shift()!;
+    });
   };
 
   const initProject = () => {
@@ -266,7 +265,9 @@ export const useProjectManageStore = defineStore('projectManageStore', () => {
     selectedElementsCopyForPropertyPanel,
     commitState,
     setReSize,
-    setRotate,
+    setReSizeGroup,
+    setTransform,
+    setTransformGroup,
     activeElement,
     activeElements,
     initProject,
